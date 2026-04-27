@@ -4,6 +4,8 @@
 
 #include "../include/DoubleRoom.h"
 
+#include <algorithm>
+#include <numeric>
 #include <stdexcept>
 
 DoubleRoom::DoubleRoom(double area, unsigned int number, unsigned int floor,
@@ -38,3 +40,18 @@ const unsigned int DoubleRoom::calc_price() const {
 }
 
 unsigned int DoubleRoom::calc_workers_needed() { return (const unsigned int)2; }
+
+bool Room::check_suitability(
+    std::vector<unsigned int> &people_sleeping_together) {
+
+  unsigned int sum_of_people = std::accumulate(
+      people_sleeping_together.begin(), people_sleeping_together.end(), 0);
+  if (sum_of_people > 2 || sum_of_people == 0) {
+    throw(std::out_of_range("Trying to put " + std::to_string(sum_of_people) +
+                            " in DoubleRoom."));
+  }
+  unsigned int d_beds = this->get_double_beds();
+  unsigned int p2 = std::ranges::count(people_sleeping_together, 2);
+
+  return (p2 == 0 || d_beds > 0);
+}

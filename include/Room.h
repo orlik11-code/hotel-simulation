@@ -29,7 +29,8 @@ public:
   void destroy();
   void new_config(unsigned int s_beds, unsigned int d_beds);
 
-  bool check_suitability(std::vector<unsigned int> &people_sleeping_together);
+  virtual bool
+  check_suitability(std::vector<unsigned int> &people_sleeping_together);
 
   Room(double area, unsigned int price, unsigned int workers_needed,
        unsigned int number, unsigned int floor, unsigned int single_beds,

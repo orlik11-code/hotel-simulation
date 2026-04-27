@@ -12,6 +12,9 @@ public:
              unsigned int single_beds, unsigned int double_beds, bool to_clean,
              bool to_repair);
 
+  bool check_suitability(
+      std::vector<unsigned int> &people_sleeping_together) override;
+
 private:
   const unsigned int calc_price() const;
   static unsigned int calc_workers_needed();
