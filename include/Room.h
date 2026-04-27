@@ -4,6 +4,7 @@
 
 #ifndef PROI_ZAD4_ROOM_H
 #define PROI_ZAD4_ROOM_H
+#include <vector>
 
 class Room{
 public:
@@ -28,6 +29,8 @@ public:
     void repair();
     void destroy();
     void new_config(unsigned int s_beds, unsigned int d_beds);
+
+    bool check_suitability(std::vector<unsigned int> &people_sleeping_together);
 
     Room(double area, unsigned int price, unsigned int workers_needed, unsigned int number, unsigned int floor,
         unsigned int single_beds, unsigned int double_beds, bool to_clean, bool to_repair);

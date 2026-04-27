@@ -102,7 +102,16 @@ Room::Room(double area, unsigned int price, unsigned int workers_needed, unsigne
           to_repair(to_repair) {
 }
 
-
+//checking if room is suitable for client
+bool Room::check_suitability(std::vector<unsigned int> &people_sleeping_together) {
+    unsigned int s_beds = this->get_single_beds();
+    unsigned int d_beds = this->get_double_beds();
+    for (const auto p: people_sleeping_together) {
+        if (p == 1) { s_beds--;}
+        else if (p == 2) { d_beds--;}
+        else {throw std::out_of_range(std::to_string(p) + "people cannot sleep together!");}
+    }
+}
 
 
 
