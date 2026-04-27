@@ -11,8 +11,11 @@ public:
     unsigned int get_workers_needed() const;
     unsigned int get_single_beds() const;
     unsigned int get_double_beds() const;
-    bool to_clean() const;
-    bool to_repair() const;
+    unsigned int get_number() const;
+    unsigned int get_floor() const;
+
+    bool is_to_clean() const;
+    bool is_to_repair() const;
 
     void set_price(unsigned int price);
     void set_workers_needed(unsigned int workers_needed);
