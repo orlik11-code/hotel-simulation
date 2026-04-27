@@ -6,6 +6,10 @@
 #include <stdexcept>
 
 //getters & setters
+void Room::set_area(double area) {
+    this->area = area;
+}
+
 void Room::set_number(unsigned int number) {
     this->number = number;
 }
@@ -40,6 +44,10 @@ unsigned int Room::get_single_beds() const {
 
 unsigned int Room::get_floor() const {
     return this->floor;
+}
+
+double Room::get_area() const {
+    return this->area;
 }
 
 bool Room::is_to_clean() const {
@@ -79,8 +87,6 @@ void Room::new_config(unsigned int s_beds, unsigned int d_beds) {
     this->single_beds = s_beds;
     this->double_beds = d_beds;
 }
-
-
 
 
 

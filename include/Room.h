@@ -13,6 +13,7 @@ public:
     unsigned int get_double_beds() const;
     unsigned int get_number() const;
     unsigned int get_floor() const;
+    double get_area() const;
 
     bool is_to_clean() const;
     bool is_to_repair() const;
@@ -20,6 +21,7 @@ public:
     void set_price(unsigned int price);
     void set_workers_needed(unsigned int workers_needed);
     void set_number(unsigned int number);
+    void set_area(double area);
 
     void clean();
     void make_dirty();
@@ -28,6 +30,7 @@ public:
     void new_config(unsigned int s_beds, unsigned int d_beds);
 
 private:
+    double area;
     unsigned int price;
     unsigned int workers_needed;
     unsigned int number;
