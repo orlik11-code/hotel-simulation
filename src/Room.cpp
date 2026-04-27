@@ -65,6 +65,21 @@ void Room::repair() {
     to_repair = false;
 }
 
+// destroying and making dirty
+void Room::destroy() {
+    this->to_repair = true;
+}
+
+void Room::make_dirty() {
+    this->to_clean = true;
+}
+
+// changing room configuration
+void Room::new_config(unsigned int s_beds, unsigned int d_beds) {
+    this->single_beds = s_beds;
+    this->double_beds = d_beds;
+}
+
 
 
 

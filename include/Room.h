@@ -22,7 +22,9 @@ public:
     void set_number(unsigned int number);
 
     void clean();
+    void make_dirty();
     void repair();
+    void destroy();
     void new_config(unsigned int s_beds, unsigned int d_beds);
 
 private:
