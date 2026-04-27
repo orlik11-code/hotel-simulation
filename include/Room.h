@@ -29,6 +29,9 @@ public:
     void destroy();
     void new_config(unsigned int s_beds, unsigned int d_beds);
 
+    Room(double area, unsigned int price, unsigned int workers_needed, unsigned int number, unsigned int floor,
+        unsigned int single_beds, unsigned int double_beds, bool to_clean, bool to_repair);
+
 private:
     double area;
     unsigned int price;

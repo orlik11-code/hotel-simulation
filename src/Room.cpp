@@ -88,6 +88,20 @@ void Room::new_config(unsigned int s_beds, unsigned int d_beds) {
     this->double_beds = d_beds;
 }
 
+//constructor
+Room::Room(double area, unsigned int price, unsigned int workers_needed, unsigned int number, unsigned int floor,
+        unsigned int single_beds, unsigned int double_beds, bool to_clean, bool to_repair)
+        : area(area),
+          price(price),
+          workers_needed(workers_needed),
+          number(number),
+          floor(floor),
+          single_beds(single_beds),
+          double_beds(double_beds),
+          to_clean(to_clean),
+          to_repair(to_repair) {
+}
+
 
 
 
