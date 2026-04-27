@@ -13,8 +13,8 @@ public:
              bool to_repair);
 
 private:
-  unsigned int calc_price();
-  unsigned int calc_workers_needed();
+  const unsigned int calc_price() const;
+  static unsigned int calc_workers_needed();
 };
 
 #endif // PROI_ZAD4_SINGLEROOM_H
