@@ -8,8 +8,6 @@
 
 class Room {
 public:
-  unsigned int get_price() const;
-  unsigned int get_workers_needed() const;
   unsigned int get_single_beds() const;
   unsigned int get_double_beds() const;
   unsigned int get_number() const;
@@ -20,7 +18,6 @@ public:
   bool is_to_repair() const;
 
   void set_price(unsigned int price);
-  void set_workers_needed(unsigned int workers_needed);
   void set_number(unsigned int number);
   void set_area(double area);
   void clean();
@@ -30,16 +27,19 @@ public:
   void new_config(unsigned int s_beds, unsigned int d_beds);
 
   virtual bool
-  check_suitability(std::vector<unsigned int> &people_sleeping_together);
+  check_suitability(const std::vector<unsigned int> &people_sleeping_together);
 
-  Room(double area, unsigned int price, unsigned int workers_needed,
-       unsigned int number, unsigned int floor, unsigned int single_beds,
-       unsigned int double_beds, bool to_clean, bool to_repair);
+  Room(double area, unsigned int number, unsigned int floor,
+       unsigned int single_beds, unsigned int double_beds, bool to_clean,
+       bool to_repair);
 
-private:
+  virtual ~Room() = default;
+
+  virtual unsigned int calculateNightlyPrice() const = 0;
+  virtual unsigned int calculateStaffNeeded() const = 0;
+
+protected:
   double area;
-  unsigned int price;
-  unsigned int workers_needed;
   unsigned int number;
   unsigned int floor;
   unsigned int single_beds;

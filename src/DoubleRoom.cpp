@@ -11,8 +11,7 @@
 DoubleRoom::DoubleRoom(double area, unsigned int number, unsigned int floor,
                        unsigned int single_beds, unsigned int double_beds,
                        bool to_clean, bool to_repair)
-    : Room(area, this->calc_price(), DoubleRoom::calc_workers_needed(), number,
-           floor, single_beds, double_beds, to_clean, to_repair) {
+    : Room(area, number, floor, single_beds, double_beds, to_clean, to_repair) {
   if (single_beds != 0 && double_beds != 0) {
     throw std::logic_error("Given parameters:\n" + std::to_string(single_beds) +
                            " single beds,\n" + std::to_string(double_beds) +
@@ -32,17 +31,19 @@ DoubleRoom::DoubleRoom(double area, unsigned int number, unsigned int floor,
   }
 }
 
-const unsigned int DoubleRoom::calc_price() const {
+unsigned int DoubleRoom::calculateNightlyPrice() const {
   unsigned int base_price = 170;
   unsigned int floor_addon = 15 * get_floor();
   const unsigned int res = base_price + floor_addon;
   return res;
 }
 
-unsigned int DoubleRoom::calc_workers_needed() { return (const unsigned int)2; }
+unsigned int DoubleRoom::calculateStaffNeeded() const {
+  return (unsigned int)2;
+}
 
-bool Room::check_suitability(
-    std::vector<unsigned int> &people_sleeping_together) {
+bool DoubleRoom::check_suitability(
+    const std::vector<unsigned int> &people_sleeping_together) {
 
   unsigned int sum_of_people = std::accumulate(
       people_sleeping_together.begin(), people_sleeping_together.end(), 0);

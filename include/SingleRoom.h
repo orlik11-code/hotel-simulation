@@ -13,11 +13,10 @@ public:
              bool to_repair);
 
   bool check_suitability(
-      std::vector<unsigned int> &people_sleeping_together) override;
+      const std::vector<unsigned int> &people_sleeping_together) override;
 
-private:
-  const unsigned int calc_price() const;
-  static unsigned int calc_workers_needed();
+  unsigned int calculateNightlyPrice() const override;
+  unsigned int calculateStaffNeeded() const override;
 };
 
 #endif // PROI_ZAD4_SINGLEROOM_H

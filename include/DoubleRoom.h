@@ -12,9 +12,11 @@ public:
              unsigned int single_beds, unsigned int double_beds, bool to_clean,
              bool to_repair);
 
-private:
-  const unsigned int calc_price() const;
-  static unsigned int calc_workers_needed();
+  bool check_suitability(
+      const std::vector<unsigned int> &people_sleeping_together) override;
+  
+  unsigned int calculateNightlyPrice() const override;
+  unsigned int calculateStaffNeeded() const override;
 };
 
 #endif // PROI_ZAD4_DOUBLEROOM_H

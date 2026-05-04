@@ -13,8 +13,7 @@
 TripleRoom::TripleRoom(double area, unsigned int number, unsigned int floor,
                        unsigned int single_beds, unsigned int double_beds,
                        bool to_clean, bool to_repair)
-    : Room(area, this->calc_price(), TripleRoom::calc_workers_needed(), number,
-           floor, single_beds, double_beds, to_clean, to_repair) {
+    : Room(area, number, floor, single_beds, double_beds, to_clean, to_repair) {
   std::vector<std::pair<unsigned int, unsigned int>> correct_bed_configs{
       {3, 0}, {1, 1}, {0, 2}};
   std::pair<unsigned int, unsigned int> proposed_config = {single_beds,
@@ -28,37 +27,46 @@ TripleRoom::TripleRoom(double area, unsigned int number, unsigned int floor,
   }
 }
 
-const unsigned int TripleRoom::calc_price() const {
+unsigned int TripleRoom::calculateNightlyPrice() const {
   unsigned int base_price = 220;
   unsigned int floor_addon = 20 * get_floor();
   const unsigned int res = base_price + floor_addon;
   return res;
 }
 
-unsigned int TripleRoom::calc_workers_needed() { return (const unsigned int)2; }
+unsigned int TripleRoom::calculateStaffNeeded() const {
+  return (unsigned int)2;
+}
 
-bool Room::check_suitability(
-    std::vector<unsigned int> &people_sleeping_together) {
-
+bool TripleRoom::check_suitability(
+    const std::vector<unsigned int> &people_sleeping_together) {
   unsigned int sum_of_people = std::accumulate(
-      people_sleeping_together.begin(), people_sleeping_together.end(), 0);
+      people_sleeping_together.begin(), people_sleeping_together.end(), 0u);
+
   if (sum_of_people > 3 || sum_of_people == 0) {
-    throw(std::out_of_range("Trying to put " + std::to_string(sum_of_people) +
-                            " in TripleRoom."));
+    throw std::out_of_range("Trying to put " + std::to_string(sum_of_people) +
+                            " in TripleRoom.");
   }
-  
+
+  unsigned int p1 = static_cast<unsigned int>(
+      std::ranges::count(people_sleeping_together, 1));
+  unsigned int p2 = static_cast<unsigned int>(
+      std::ranges::count(people_sleeping_together, 2));
+
+  if (p1 + p2 != people_sleeping_together.size()) {
+    throw std::logic_error("Only 1 or 2 people can sleep together.");
+  }
+
   unsigned int s_beds = this->get_single_beds();
   unsigned int d_beds = this->get_double_beds();
-  unsigned int p1 = std::ranges::count(people_sleeping_together, 1);
-  unsigned int p2 = std::ranges::count(people_sleeping_together, 2);
 
-  if (p1 + p2 != (int)people_sleeping_together.size()) {
-    throw(std::logic_error("Only 1 or 2 people can sleep together."));
+  if (p2 > d_beds) {
+    return false;
   }
 
-  d_beds -= p2;
-  p1 -= std::min(std::max((unsigned int)0, d_beds), p1);
-  s_beds -= p1;
+  unsigned int remaining_d_beds = d_beds - p2;
+  unsigned int p1_in_d_beds = (p1 < remaining_d_beds) ? p1 : remaining_d_beds;
+  unsigned int remaining_p1 = p1 - p1_in_d_beds;
 
-  return (std::min(s_beds, d_beds) >= (unsigned int)0);
+  return remaining_p1 <= s_beds;
 }

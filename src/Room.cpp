@@ -12,17 +12,7 @@ void Room::set_area(double area) { this->area = area; }
 
 void Room::set_number(unsigned int number) { this->number = number; }
 
-void Room::set_workers_needed(unsigned int workers_needed) {
-  this->workers_needed = workers_needed;
-}
-
-void Room::set_price(unsigned int price) { this->price = price; }
-
 unsigned int Room::get_number() const { return this->number; }
-
-unsigned int Room::get_workers_needed() const { return this->workers_needed; }
-
-unsigned int Room::get_price() const { return this->price; }
 
 unsigned int Room::get_double_beds() const { return this->double_beds; }
 
@@ -63,29 +53,41 @@ void Room::new_config(unsigned int s_beds, unsigned int d_beds) {
 }
 
 // constructor
-Room::Room(double area, unsigned int price, unsigned int workers_needed,
-           unsigned int number, unsigned int floor, unsigned int single_beds,
-           unsigned int double_beds, bool to_clean, bool to_repair)
-    : area(area), price(price), workers_needed(workers_needed), number(number),
-      floor(floor), single_beds(single_beds), double_beds(double_beds),
-      to_clean(to_clean), to_repair(to_repair) {}
+Room::Room(double area, unsigned int number, unsigned int floor,
+           unsigned int single_beds, unsigned int double_beds, bool to_clean,
+           bool to_repair)
+    : area(area), number(number), floor(floor), single_beds(single_beds),
+      double_beds(double_beds), to_clean(to_clean), to_repair(to_repair) {}
 
 // checking if room is suitable for client
 bool Room::check_suitability(
-    std::vector<unsigned int> &people_sleeping_together) {
+    const std::vector<unsigned int> &people_sleeping_together) {
+  unsigned int available_s_beds = this->get_single_beds();
+  unsigned int available_d_beds = this->get_double_beds();
 
-  unsigned int s_beds = this->get_single_beds();
-  unsigned int d_beds = this->get_double_beds();
-  unsigned int p1 = std::ranges::count(people_sleeping_together, 1);
-  unsigned int p2 = std::ranges::count(people_sleeping_together, 2);
+  unsigned int p1 = 0;
+  unsigned int p2 = 0;
 
-  if (p1 + p2 != (int)people_sleeping_together.size()) {
-    throw(std::logic_error("Only 1 or 2 people can sleep together."));
+  for (unsigned int val : people_sleeping_together) {
+    if (val == 1)
+      p1++;
+    else if (val == 2)
+      p2++;
+    else
+      throw std::logic_error("Only 1 or 2 people can sleep together.");
   }
 
-  d_beds -= p2;
-  p1 -= std::min(std::max((unsigned int)0, d_beds), p1);
-  s_beds -= p1;
+  if (p1 + p2 != people_sleeping_together.size()) {
+    throw std::logic_error("Invalid vector size calculation.");
+  }
 
-  return (std::min(s_beds, d_beds) >= (unsigned int)0);
+  if (p2 > available_d_beds) {
+    return false;
+  }
+  available_d_beds -= p2;
+
+  unsigned int p1_in_d_beds = (p1 < available_d_beds) ? p1 : available_d_beds;
+  p1 -= p1_in_d_beds;
+
+  return p1 <= available_s_beds;
 }
