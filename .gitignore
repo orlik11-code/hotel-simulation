@@ -1,0 +1,42 @@
+# Build directories
+/build/
+/build-*/
+/cmake-build-*/
+
+# CMake generated files
+/CMakeCache.txt
+/CMakeFiles/
+/cmake_install.cmake
+/compile_commands.json
+/CTestTestfile.cmake
+/Testing/
+/Makefile
+
+# Static/shared libraries and binaries
+*.a
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.out
+
+# Object and dependency files
+*.o
+*.obj
+*.lo
+*.d
+
+# Debug symbols and profiling
+*.pdb
+*.gcno
+*.gcda
+*.gcov
+*.prof
+*.profraw
+
+# Editors / OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
