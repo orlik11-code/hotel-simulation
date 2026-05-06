@@ -78,12 +78,14 @@ class Staff {
         [[nodiscard]] unsigned int get_to_pay() const noexcept;
 
         [[nodiscard]] bool is_tired() const noexcept;
+        [[nodiscard]] unsigned int get_fatigue() const noexcept;
         void rest_tick() noexcept;
         void increase_fatigue(unsigned int extra = 1U) noexcept;
 
         [[nodiscard]] virtual StaffRole role() const noexcept = 0;
         [[nodiscard]] virtual bool can_handle(const Task& task) const noexcept = 0;
         virtual void do_work(const Task& task) = 0;
+
 };
 
 // Recepcjonista: obsługuje zadania związane z meldowaniem gości.

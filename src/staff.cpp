@@ -50,9 +50,19 @@ unsigned int Staff::get_uid() const noexcept
     return uid;
 }
 
+StaffRole Staff::get_role() const noexcept
+{
+    return role();
+}
+
 bool Staff::is_tired() const noexcept
 {
     return fatigue >= kMaxFatigue;
+}
+
+unsigned int Staff::get_fatigue() const noexcept
+{
+    return fatigue;
 }
 
 bool Staff::process_fatigue(const Task& task) noexcept
