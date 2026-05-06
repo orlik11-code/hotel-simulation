@@ -1,213 +1,130 @@
 #include <catch2/catch_test_macros.hpp>
-#include <stdexcept>
-#include "staff.hpp"
-#include "hotel.hpp"
+#include <memory>
+#include <vector>
 
-TEST_CASE("Basics - Initialization and Getters") {
-    Receptionist r("John", "Doe", 30, 15);
-    REQUIRE(r.get_first_name() == "John");
-    REQUIRE(r.get_last_name() == "Doe");
-    REQUIRE(r.get_base_rate() == 30);
-    REQUIRE(r.get_profession() == "Receptionist");
-
-    // empty name check
-    REQUIRE_THROWS_AS(Receptionist("", "Doe", 30, 15), std::invalid_argument);
-}
-
-TEST_CASE("BHP - Rest Periods and Time Logic") {
-    Receptionist r("BHP", "Tester", 30, 0);
-
-    // same start and end
-    REQUIRE_THROWS_AS(r.determine_schedule(0, 10, 10), std::invalid_argument);
-
-    r.determine_schedule(0, 8, 20);
-    REQUIRE_NOTHROW(r.determine_schedule(1, 6, 14)); // 10h rest OK
-
-    r.determine_schedule(6, 14, 22);
-    REQUIRE_THROWS_AS(r.determine_schedule(0, 6, 14), std::invalid_argument); // 8h rest - fail
-}
-
-TEST_CASE("Role Specific Logic") {
-    Maid m("Anna", "Sweep", 25, 0);
-    // maid night shift type 3
-    REQUIRE_THROWS_AS(m.determine_schedule(0, 3), std::invalid_argument);
-    // maid custom night shift
-    REQUIRE_THROWS_AS(m.determine_schedule(0, 22, 6), std::invalid_argument);
-}
-
-TEST_CASE("Salary and Bonus Math") {
-    Receptionist r("Night", "Owl", 30, 15);
-    r.determine_schedule(0, 6, 14);
-    r.determine_schedule(1, 22, 6);
-    REQUIRE(r.calculate_salary() == 600); // (8h * 30) + (8h * 45)
-}
-
-TEST_CASE("Hotel Registry and Polymorphism") {
-    Hotel h(35, 28, 45, 15);
-    h.add_receptionist("Rec", "Staff");
-    h.add_maid("Maid", "Staff");
-
-    // shift 3 to all
-    REQUIRE_NOTHROW(h.apply_schedule_to_all(0, 3));
-
-    // maid skips night shift -> 0$
-    REQUIRE(h.get_worker(0)->calculate_salary() == 400); // Rec 8h * 50
-    REQUIRE(h.get_worker(1)->calculate_salary() == 0);
-}
-
-TEST_CASE("Chef - Role Specific Logic and Shifts") {
-    Chef c("Gordon", "Ramsay", 45, 0);
-    REQUIRE(c.get_profession() == "Chef");
-
-    REQUIRE_NOTHROW(c.determine_schedule(0, 1)); // 1: 5-13
-    REQUIRE_NOTHROW(c.determine_schedule(1, 2)); // 2: 14-22
-
-    // no 3rd shift
-    REQUIRE_THROWS_AS(c.determine_schedule(2, 3), std::invalid_argument);
-
-    // type 0 free day
-    REQUIRE_NOTHROW(c.determine_schedule(3, 0));
-
-    // 2 shifts * 8h = 16h * 45$ = 720$
-    REQUIRE(c.calculate_salary() == 720);
-}
-
-TEST_CASE("Maid - Salary and Custom Shifts") {
-    Maid m("Cleaning", "Lady", 25, 0);
-
-    m.determine_schedule(0, 1); // 1: 8-16 (8h)
-    m.determine_schedule(1, 2); // 2: 12-20 (8h)
-    m.determine_schedule(2, 0); // free
-
-    // touches night zone (23)
-    REQUIRE_THROWS_AS(m.determine_schedule(3, 15, 23), std::invalid_argument);
-
-    // 16h * 25$ = 400$
-    REQUIRE(m.calculate_salary() == 400);
-}
-
-TEST_CASE("BHP - Edge Cases (Exact 10h gap and invalid shifts)") {
-    Receptionist r("Edge", "Case", 30, 10);
-
-    // exactly 10h gap OK
-    r.determine_schedule(0, 6, 14); // ends 14
-    REQUIRE_NOTHROW(r.determine_schedule(1, 0, 8)); // starts 0
-
-    Receptionist r2("Edge", "Case2", 30, 10);
-
-    // 9h gap ERROR
-    r2.determine_schedule(0, 6, 15); // ends 15
-    REQUIRE_THROWS_AS(r2.determine_schedule(1, 0, 8), std::invalid_argument); // starts 0
-
-    // same start and end time (not 0)
-    REQUIRE_THROWS_AS(r2.determine_schedule(3, 12, 12), std::invalid_argument);
-}
-
-TEST_CASE("Receptionist - Complex Night Bonus Math") {
-    Receptionist r("Night", "Staff", 30, 15); // base 30, bonus 15
-
-    // mixed day/night shift
-    r.determine_schedule(0, 18, 2);
-
-    // 4h day (18-22), 4h night (22-2)
-    // 120$ + 180$ = 300$
-    REQUIRE(r.calculate_salary() == 300);
-}
-
-
-TEST_CASE("Array bounds - Invalid day index") {
-    Chef c("Bad", "Day", 40, 0);
-    // index 7 is out of bounds (0-6)
-    REQUIRE_THROWS_AS(c.determine_schedule(7, 1), std::out_of_range);
-    REQUIRE_THROWS_AS(c.determine_schedule(8, 10, 18), std::out_of_range);
-}
-
-TEST_CASE("Zero shifts - zero salary") {
-    Maid m("Lazy", "Bones", 20, 0);
-    // no shifts applied
-    REQUIRE(m.calculate_salary() == 0);
-}
-
-TEST_CASE("BHP - Max hours limit") {
-    Receptionist r("Safety", "First", 30, 10);
-
-    // 13 hr wrong
-    REQUIRE_THROWS_AS(r.determine_schedule(0, 8, 21), std::invalid_argument);
-
-    // 8 hr good
-    REQUIRE_NOTHROW(r.determine_schedule(0, 8, 16));
-}
-
-TEST_CASE("Edge Case - Day Off vs Invalid Zero") {
-    Receptionist r("Logic", "Check", 30, 10);
-
-    // (0, 0) is a Day Off
-    REQUIRE_NOTHROW(r.determine_schedule(0, 0, 0));
-
-    // (12, 12) is 0 hour work
-    REQUIRE_THROWS_AS(r.determine_schedule(1, 12, 12), std::invalid_argument);
-}
-
-TEST_CASE("BHP - Weekend Transition") {
-    Receptionist r("BHP", "Check", 30, 10);
-
-    // Sunday nocka ends Monday 6:00 AM
-    r.determine_schedule(6, 22, 6);
-
-    // Monday 10:00 AM start 4h rest BHP FAIL
-    REQUIRE_THROWS_AS(r.determine_schedule(0, 10, 18), std::invalid_argument);
-}
-
-
-#include <catch2/catch_test_macros.hpp>
-#include "hotel.hpp"
 #include "staff.hpp"
 
+TEST_CASE("Staff getters return constructor data")
+{
+    Receptionist receptionist(101U, "Jan", "Kowalski", 50U, 20U, 5U);
 
-TEST_CASE("Weekly Test - Receptionist") {
-    Receptionist r("Adam", "Rec", 30, 10);
-
-    r.determine_schedule(0, 6, 14);  // Mon: 8h Day
-    r.determine_schedule(1, 14, 22); // Tue: 8h Day
-    r.determine_schedule(2, 22, 6);  // Wed: 8h Night (ends Thu 06:00)
-
-    r.determine_schedule(3, 0);      // Thu: Day off
-
-    r.determine_schedule(4, 22, 6);  // Fri: 8h Night (ends Sat 06:00)
-    r.determine_schedule(5, 0);      // Sat: Day off
-    r.determine_schedule(6, 6, 14);  // Sun: 8h Day
-
-    // MATH: Day(8+8+8=24h) * 30 + Night(8+8=16h) * 40
-    // 720 + 640 = 1360
-    REQUIRE(r.calculate_salary() == 1360);
+    REQUIRE(receptionist.get_uid() == 101U);
+    REQUIRE(receptionist.get_first_name() == "Jan");
+    REQUIRE(receptionist.get_last_name() == "Kowalski");
+    REQUIRE(receptionist.get_salary() == 50U);
+    REQUIRE(receptionist.get_to_pay() == 0U);
 }
 
-TEST_CASE("Weekly Test - Maid") {
-    Maid m("Ewa", "Nowak", 25, 0);
+TEST_CASE("Role mapping and task matching work for each class")
+{
+    Receptionist receptionist(1U, "A", "B", 30U, 10U, 5U);
+    Housekeeper housekeeper(2U, "A", "B", 30U, 10U, 5U);
+    Chef chef(3U, "A", "B", 30U, 10U, 5U);
+    Waiter waiter(4U, "A", "B", 30U, 10U, 5U);
+    MaintenanceWorker maintenance(5U, "A", "B", 30U, 10U, 5U);
 
-    for(int i=0; i<5; ++i) {
-        m.determine_schedule(i, 8, 16); // 8h Day
+    REQUIRE(receptionist.role() == StaffRole::Receptionist);
+    REQUIRE(housekeeper.role() == StaffRole::Housekeeper);
+    REQUIRE(chef.role() == StaffRole::Chef);
+    REQUIRE(waiter.role() == StaffRole::Waiter);
+    REQUIRE(maintenance.role() == StaffRole::MaintenanceWorker);
+
+    REQUIRE(receptionist.can_handle(Task{TaskType::CheckIn}));
+    REQUIRE_FALSE(receptionist.can_handle(Task{TaskType::CookMeal}));
+
+    REQUIRE(housekeeper.can_handle(Task{TaskType::CleanRoom}));
+    REQUIRE_FALSE(housekeeper.can_handle(Task{TaskType::CleanRoom, 1U, 1U, 0U, true}));
+
+    REQUIRE(chef.can_handle(Task{TaskType::CookMeal}));
+    REQUIRE(waiter.can_handle(Task{TaskType::ServeMeal}));
+    REQUIRE(maintenance.can_handle(Task{TaskType::FixFailure}));
+    REQUIRE_FALSE(maintenance.can_handle(Task{TaskType::FixFailure, 1U, 1U, 0U, true}));
+}
+
+TEST_CASE("Payment formula includes hours night premium task and role bonuses")
+{
+    Receptionist receptionist(10U, "R", "R", 10U, 3U, 1U);
+    Housekeeper housekeeper(11U, "H", "H", 10U, 3U, 1U);
+    Chef chef(12U, "C", "C", 10U, 3U, 1U);
+    Waiter waiter(13U, "W", "W", 10U, 3U, 1U);
+    MaintenanceWorker maintenance(14U, "M", "M", 10U, 3U, 1U);
+
+    const Task day_task{TaskType::CheckIn, 2U, 2U, 5U, false};
+    receptionist.do_work(day_task);
+    REQUIRE(receptionist.get_to_pay() == 27U); // 10*2 + 5 + role(2)
+
+    const Task clean_task{TaskType::CleanRoom, 2U, 2U, 5U, false};
+    housekeeper.do_work(clean_task);
+    REQUIRE(housekeeper.get_to_pay() == 29U); // 10*2 + 5 + role(4)
+
+    const Task cook_task{TaskType::CookMeal, 2U, 2U, 5U, true};
+    chef.do_work(cook_task);
+    REQUIRE(chef.get_to_pay() == 37U); // (10+3)*2 + 5 + role(6)
+
+    const Task serve_task{TaskType::ServeMeal, 1U, 4U, 1U, false};
+    waiter.do_work(serve_task);
+    REQUIRE(waiter.get_to_pay() == 15U); // 10*1 + 1 + role(4)
+
+    const Task fix_task{TaskType::FixFailure, 3U, 2U, 0U, false};
+    maintenance.do_work(fix_task);
+    REQUIRE(maintenance.get_to_pay() == 38U); // 10*3 + 0 + role(8)
+}
+
+TEST_CASE("Night restrictions prevent housekeeper and maintenance work")
+{
+    Housekeeper housekeeper(20U, "H", "H", 20U, 10U, 5U);
+    MaintenanceWorker maintenance(21U, "M", "M", 20U, 10U, 5U);
+
+    const Task night_clean{TaskType::CleanRoom, 2U, 2U, 3U, true};
+    const Task night_fix{TaskType::FixFailure, 2U, 2U, 3U, true};
+
+    housekeeper.do_work(night_clean);
+    maintenance.do_work(night_fix);
+
+    REQUIRE(housekeeper.get_to_pay() == 0U);
+    REQUIRE(maintenance.get_to_pay() == 0U);
+}
+
+TEST_CASE("Fatigue grows with work and can be reduced by rest")
+{
+    Chef chef(30U, "C", "C", 20U, 10U, 25U);
+
+    const Task cook_task{TaskType::CookMeal, 1U, 2U, 0U, false};
+    chef.do_work(cook_task); // +50 fatigue
+    REQUIRE_FALSE(chef.is_tired());
+
+    chef.do_work(cook_task); // +50 fatigue => 100
+    REQUIRE(chef.is_tired());
+
+    const unsigned int pay_before_blocked_work = chef.get_to_pay();
+    chef.do_work(cook_task); // blocked by fatigue
+    REQUIRE(chef.get_to_pay() == pay_before_blocked_work);
+
+    chef.rest_tick(); // 100 -> 75
+    REQUIRE_FALSE(chef.is_tired());
+}
+
+TEST_CASE("Polymorphic collection executes overridden methods")
+{
+    std::vector<std::unique_ptr<Staff>> team;
+    team.push_back(std::make_unique<Receptionist>(1001U, "Rec", "One", 10U, 5U, 5U));
+    team.push_back(std::make_unique<Housekeeper>(1002U, "House", "One", 10U, 5U, 5U));
+    team.push_back(std::make_unique<MaintenanceWorker>(1003U, "Maint", "One", 10U, 5U, 5U));
+
+    const Task check_in{TaskType::CheckIn, 1U, 1U, 0U, false};
+    const Task clean_room{TaskType::CleanRoom, 1U, 1U, 0U, false};
+    const Task fix_night{TaskType::FixFailure, 1U, 1U, 0U, true};
+
+    for (const auto& worker : team) {
+        worker->do_work(check_in);
+        worker->do_work(clean_room);
+        worker->do_work(fix_night);
     }
-    m.determine_schedule(5, 0); // Sat off
-    m.determine_schedule(6, 0); // Sun off
 
-    // MATH: 5 days * 8h = 40h * 25 = 1000
-    REQUIRE(m.calculate_salary() == 1000);
-    REQUIRE_THROWS(m.determine_schedule(0, 22, 6));
-}
-
-TEST_CASE("Weekly Test - Chef") {
-    // base 40
-    Chef c("Robert", "Maklowicz", 40, 0);
-
-    c.determine_schedule(0, 1); // Type 1: 5-13 (8h)
-    c.determine_schedule(1, 1); // Type 1: 5-13 (8h)
-    c.determine_schedule(2, 2); // Type 2: 14-22 (8h)
-    c.determine_schedule(3, 2); // Type 2: 14-22 (8h)
-    c.determine_schedule(4, 0); // Fri off
-    c.determine_schedule(5, 0); // Sat off
-    c.determine_schedule(6, 0); // Sun off
-
-    // MATH: 4 days * 8h = 32h * 40 = 1280
-    REQUIRE(c.calculate_salary() == 1280);
+    REQUIRE(team[0]->get_to_pay() == 11U); // receptionist: only check-in
+    REQUIRE(team[1]->get_to_pay() == 12U); // housekeeper: only clean-room
+    REQUIRE(team[2]->get_to_pay() == 0U);  // maintenance: task was night-only
+    REQUIRE(team[0]->get_uid() == 1001U);
+    REQUIRE(team[1]->get_uid() == 1002U);
+    REQUIRE(team[2]->get_uid() == 1003U);
 }
