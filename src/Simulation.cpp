@@ -1,25 +1,46 @@
-#pragma once
+#include "Simulation.hpp"
 #include "Hotel.hpp"
+#include <iostream>
 
-struct SimConfig
+Simulation::Simulation(const SimConfig& new_sim_config)
 {
-    unsigned int ticsPerDay = 24;
-};
+    config = new_sim_config;
+    is_running = true;
+    current_tick = 0;
+    hotel = Hotel();
+}
 
-class Simulation
+Hotel& Simulation::get_hotel()
 {
-    private:
-        Hotel hotel;
-        SimConfig config;
-        unsigned int current_tick;
-        bool is_running;
+    return hotel;
+}
 
-    public:
-        // Simulation(const SimConfig& sim_config);
+void Simulation::tick()
+{
+    current_tick++;
+    hotel.tick();
 
-        // void run();
-        // void tick();
+    std::cout << "[Czas] Minal 1 tick. Obecny tick: " << current_tick << " (godz. " << hour_of_day()
+              << ", dzien_tygodnia " << weekday() << ")\n";
+}
 
-        // Hotel& get_hotel();
+unsigned int Simulation::get_current_tick() const noexcept
+{
+    return current_tick;
+}
 
-};
+unsigned int Simulation::hour_of_day() const noexcept
+{
+    if (current_tick == 0U) {
+        return 0U;
+    }
+    return (current_tick - 1U) % config.ticsPerDay;
+}
+
+unsigned int Simulation::weekday() const noexcept
+{
+    if (current_tick == 0U) {
+        return 0U;
+    }
+    return ((current_tick - 1U) / config.ticsPerDay) % 7U;
+}

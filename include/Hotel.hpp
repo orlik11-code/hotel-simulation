@@ -14,6 +14,7 @@ class Hotel
 
         [[nodiscard]] bool check_existance(unsigned int worker_uid) const;
         void add_worker(std::unique_ptr<Staff> worker);
+        void tick();
 
         Staff* find_by_uid(unsigned int uid);
         std::vector<Staff*> find_by_role(StaffRole role);

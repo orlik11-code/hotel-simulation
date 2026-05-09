@@ -2,9 +2,16 @@
 #include <array>
 #include <string>
 
-struct Shift {
-    unsigned int start_hour = 0;
-    unsigned int end_hour = 0;
+
+enum class Weekday
+{
+    monday,
+    tuesday,
+    wednesday,
+    thursday,
+    friday,
+    saturday,
+    sunday
 };
 
 enum class StaffRole {
@@ -23,6 +30,14 @@ enum class TaskType {
     FixFailure
 };
 
+
+struct Shift {
+    Weekday weekday;
+    unsigned int start_hour = 0;
+    unsigned int end_hour = 0;
+    bool night_shift = false;
+};
+
 struct Task {
     TaskType type = TaskType::CheckIn;
     unsigned int duration_hours = 1;
@@ -30,6 +45,7 @@ struct Task {
     unsigned int bonus = 0;
     bool night_shift = false;
 };
+
 
 // Abstrakcyjna klasa bazowa personelu: wspólne dane i interfejs pracy.
 class Staff {
@@ -55,6 +71,11 @@ class Staff {
 
         bool process_fatigue(const Task& task) noexcept;
         [[nodiscard]] unsigned int calculate_task_payment(const Task& task, unsigned int role_bonus) const noexcept;
+
+        void store_day_shift(Weekday day, Shift shift_type);
+
+        [[nodiscard]] virtual unsigned int max_shift_duration_hours() const noexcept = 0;
+        [[nodiscard]] virtual bool forbids_night_shift_schedule() const noexcept { return false; }
 
     public:
         Staff(unsigned int new_uid, const std::string& first_name,
@@ -86,49 +107,78 @@ class Staff {
         [[nodiscard]] virtual bool can_handle(const Task& task) const noexcept = 0;
         virtual void do_work(const Task& task) = 0;
 
+        /** weekday: 0 = poniedziałek … 6 = niedziela (dowolna ustalona konwencja). */
+        [[nodiscard]] bool is_on_shift(unsigned hour_of_day, unsigned weekday) const noexcept;
+        void check_schedule(unsigned int day_index, unsigned int start_hour, unsigned int end_hour) const;
+        virtual void determine_schedule(Weekday day, Shift shift_type) = 0;
+
+        [[nodiscard]] unsigned int get_day(Weekday day) const;
+
 };
 
 // Recepcjonista: obsługuje zadania związane z meldowaniem gości.
 class Receptionist final : public Staff {
+    protected:
+        [[nodiscard]] unsigned int max_shift_duration_hours() const noexcept override;
+
     public:
         using Staff::Staff;
         [[nodiscard]] StaffRole role() const noexcept override;
         [[nodiscard]] bool can_handle(const Task& task) const noexcept override;
         void do_work(const Task& task) override;
+        void determine_schedule(Weekday day, Shift shift_type) override;
 };
 
 // Pokojówka: realizuje zadania sprzątania pokoi.
 class Housekeeper final : public Staff {
+    protected:
+        [[nodiscard]] unsigned int max_shift_duration_hours() const noexcept override;
+        [[nodiscard]] bool forbids_night_shift_schedule() const noexcept override;
+
     public:
         using Staff::Staff;
         [[nodiscard]] StaffRole role() const noexcept override;
         [[nodiscard]] bool can_handle(const Task& task) const noexcept override;
         void do_work(const Task& task) override;
+        void determine_schedule(Weekday day, Shift shift_type) override;
 };
 
 // Kucharz: przygotowuje posiłki dla gości hotelu.
 class Chef final : public Staff {
+    protected:
+        [[nodiscard]] unsigned int max_shift_duration_hours() const noexcept override;
+        [[nodiscard]] bool forbids_night_shift_schedule() const noexcept override;
+
     public:
         using Staff::Staff;
         [[nodiscard]] StaffRole role() const noexcept override;
         [[nodiscard]] bool can_handle(const Task& task) const noexcept override;
         void do_work(const Task& task) override;
+        void determine_schedule(Weekday day, Shift shift_type) override;
 };
 
 // Kelner: dostarcza i serwuje gotowe zamówienia.
 class Waiter final : public Staff {
+    protected:
+        [[nodiscard]] unsigned int max_shift_duration_hours() const noexcept override;
+
     public:
         using Staff::Staff;
         [[nodiscard]] StaffRole role() const noexcept override;
         [[nodiscard]] bool can_handle(const Task& task) const noexcept override;
         void do_work(const Task& task) override;
+        void determine_schedule(Weekday day, Shift shift_type) override;
 };
 
 // Konserwator: usuwa awarie i usterki techniczne.
 class MaintenanceWorker final : public Staff {
+    protected:
+        [[nodiscard]] unsigned int max_shift_duration_hours() const noexcept override;
+
     public:
         using Staff::Staff;
         [[nodiscard]] StaffRole role() const noexcept override;
         [[nodiscard]] bool can_handle(const Task& task) const noexcept override;
         void do_work(const Task& task) override;
+        void determine_schedule(Weekday day, Shift shift_type) override;
 };

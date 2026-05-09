@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <memory>
+#include <stdexcept>
 #include <vector>
 
 #include "staff.hpp"
@@ -127,4 +128,52 @@ TEST_CASE("Polymorphic collection executes overridden methods")
     REQUIRE(team[0]->get_uid() == 1001U);
     REQUIRE(team[1]->get_uid() == 1002U);
     REQUIRE(team[2]->get_uid() == 1003U);
+}
+
+TEST_CASE("Receptionist determine_schedule sets daytime shift on Monday")
+{
+    Receptionist receptionist(40U, "Rec", "One", 10U, 5U, 5U);
+    receptionist.determine_schedule(Weekday::monday, Shift{Weekday::monday, 8U, 16U, false});
+
+    REQUIRE(receptionist.is_on_shift(8U, 0U));
+    REQUIRE(receptionist.is_on_shift(15U, 0U));
+    REQUIRE_FALSE(receptionist.is_on_shift(7U, 0U));
+    REQUIRE_FALSE(receptionist.is_on_shift(16U, 0U));
+}
+
+TEST_CASE("Receptionist determine_schedule maps Wednesday to weekday index 2")
+{
+    Receptionist receptionist(41U, "Rec", "Two", 10U, 5U, 5U);
+    receptionist.determine_schedule(Weekday::wednesday, Shift{Weekday::wednesday, 9U, 17U, false});
+
+    REQUIRE(receptionist.is_on_shift(10U, 2U));
+    REQUIRE_FALSE(receptionist.is_on_shift(8U, 2U));
+}
+
+TEST_CASE("Receptionist determine_schedule night span sets night_shift and covers wrap hours")
+{
+    Receptionist receptionist(42U, "Rec", "Night", 10U, 5U, 5U);
+    Shift span{Weekday::monday, 22U, 6U, false};
+    receptionist.determine_schedule(Weekday::monday, span);
+
+    REQUIRE(receptionist.is_on_shift(22U, 0U));
+    REQUIRE(receptionist.is_on_shift(23U, 0U));
+    REQUIRE(receptionist.is_on_shift(5U, 0U));
+    REQUIRE_FALSE(receptionist.is_on_shift(12U, 0U));
+}
+
+TEST_CASE("Receptionist determine_schedule throws when start equals end and non-zero")
+{
+    Receptionist receptionist(43U, "Rec", "Bad", 10U, 5U, 5U);
+
+    REQUIRE_THROWS_AS(receptionist.determine_schedule(Weekday::friday, Shift{Weekday::friday, 9U, 9U, false}),
+                      std::invalid_argument);
+}
+
+TEST_CASE("Receptionist determine_schedule allows zero span as unset hours")
+{
+    Receptionist receptionist(44U, "Rec", "Zero", 10U, 5U, 5U);
+    REQUIRE_NOTHROW(receptionist.determine_schedule(Weekday::sunday, Shift{Weekday::sunday, 0U, 0U, false}));
+    REQUIRE(receptionist.is_on_shift(0U, 6U));
+    REQUIRE(receptionist.is_on_shift(23U, 6U));
 }
