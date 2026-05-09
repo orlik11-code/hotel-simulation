@@ -1,4 +1,4 @@
-#include "workers_menagement.hpp"
+#include "Hotel.hpp"
 #include "staff.hpp"
 
 #include <algorithm>
@@ -8,12 +8,14 @@
 #include <ranges>
 #include <utility>
 #include <vector>
+#include <ranges>
+#include <algorithm>
 
-Workers_menagement::Workers_menagement()
+Hotel::Hotel()
 {
 }
 
-bool Workers_menagement::check_existance(unsigned int worker_uid) const
+bool Hotel::check_existance(unsigned int worker_uid) const
 {
     const auto found = std::ranges::find_if(workers, [worker_uid](const std::unique_ptr<Staff>& worker) {
         return worker->get_uid() == worker_uid;
@@ -21,14 +23,14 @@ bool Workers_menagement::check_existance(unsigned int worker_uid) const
     return found != workers.end();
 }
 
-void Workers_menagement::add_worker(std::unique_ptr<Staff> worker)
+void Hotel::add_worker(std::unique_ptr<Staff> worker)
 {
     if (worker) {
         workers.push_back(std::move(worker));
     }
 }
 
-Staff* Workers_menagement::find_by_uid(unsigned int uid)
+Staff* Hotel::find_by_uid(unsigned int uid)
 {
     const auto found = std::ranges::find_if(workers, [&](const std::unique_ptr<Staff>& worker) {
         return worker->get_uid() == uid;
@@ -40,7 +42,7 @@ Staff* Workers_menagement::find_by_uid(unsigned int uid)
     return found->get();
 }
 
-std::vector<Staff*> Workers_menagement::find_by_role(StaffRole role)
+std::vector<Staff*> Hotel::find_by_role(StaffRole role)
 {
     std::vector<Staff*> result;
     auto filtered_view = workers | std::views::filter([role](const std::unique_ptr<Staff>& worker) {
@@ -53,7 +55,7 @@ std::vector<Staff*> Workers_menagement::find_by_role(StaffRole role)
     return result;
 }
 
-bool Workers_menagement::assign_task(unsigned int uid, const Task& task)
+bool Hotel::assign_task(unsigned int uid, const Task& task)
 {
     Staff* correct_worker = find_by_uid(uid);
     if (correct_worker == nullptr) {
@@ -66,10 +68,8 @@ bool Workers_menagement::assign_task(unsigned int uid, const Task& task)
     return true;
 }
 
-#include <ranges>
-#include <algorithm>
 
-bool Workers_menagement::assign_first_available(StaffRole role, const Task& task)
+bool Hotel::assign_first_available(StaffRole role, const Task& task)
 {
 
     auto available_view = workers

@@ -4,13 +4,13 @@
 #include <memory>
 #include <vector>
 
-class Workers_menagement
+class Hotel
 {
     private:
         std::vector<std::unique_ptr<Staff>> workers;
 
     public:
-        Workers_menagement();
+        Hotel();
 
         [[nodiscard]] bool check_existance(unsigned int worker_uid) const;
         void add_worker(std::unique_ptr<Staff> worker);
