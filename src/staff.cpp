@@ -1,6 +1,7 @@
 #include "../include/staff.hpp"
 #include <algorithm>
 #include <iostream>
+#include <random>
 #include <stdexcept>
 #include <string>
 
@@ -22,6 +23,23 @@ constexpr unsigned int kMaxFatigue = 100U;
 }
 
 } // namespace
+
+unsigned int get_random_delta()
+{
+    static std::random_device randomize;
+    static std::mt19937 gen(randomize());
+    static std::uniform_int_distribution<unsigned int> dist(0, 60); // maximum delta is 1 hour
+    return dist(gen);
+}
+
+Task::Task(TaskType t, unsigned int base_minutes)
+    : type(t),
+      duration_minutes(base_minutes + get_random_delta()),
+      difficulty(1U),
+      bonus(0U),
+      night_shift(false)
+{
+}
 
 Staff::Staff(unsigned int new_uid,
              const std::string& first_name,
@@ -93,7 +111,7 @@ bool Staff::process_fatigue(const Task& task, Weekday weekday, unsigned int hour
 unsigned int Staff::calculate_task_payment(const Task& task, unsigned int role_bonus) const noexcept
 {
     const unsigned int hourly_rate = task.night_shift ? salary + salary_night : salary;
-    const unsigned int time_cost = hourly_rate * task.duration_hours;
+    const unsigned int time_cost = (hourly_rate * task.duration_minutes) / 60U;
     return time_cost + task.bonus + role_bonus;
 }
 
@@ -232,7 +250,7 @@ void Receptionist::do_work(const Task& task, Weekday weekday, unsigned int hour_
     }
     is_busy = true;
     current_task = task;
-    remaining_task_minutes = task.duration_hours * 60U;
+    remaining_task_minutes = task.duration_minutes;
     std::cout << "Receptionist " << name << " checked in a guest.\n";
 }
 
@@ -267,7 +285,7 @@ void Housekeeper::do_work(const Task& task, Weekday weekday, unsigned int hour_o
         return;
     }
     is_busy = true;
-    remaining_task_minutes = task.duration_hours * 60U;
+    remaining_task_minutes = task.duration_minutes;
     current_task = task;
     std::cout << "Housekeeper " << name << " cleaned a room.\n";
 }
@@ -303,7 +321,7 @@ void Chef::do_work(const Task& task, Weekday weekday, unsigned int hour_of_day)
         return;
     }
     is_busy = true;
-    remaining_task_minutes = task.duration_hours * 60U;
+    remaining_task_minutes = task.duration_minutes;
     current_task = task;
     std::cout << "Chef " << name << " prepared a meal.\n";
 }
@@ -334,7 +352,7 @@ void Waiter::do_work(const Task& task, Weekday weekday, unsigned int hour_of_day
         return;
     }
     is_busy = true;
-    remaining_task_minutes = task.duration_hours * 60U;
+    remaining_task_minutes = task.duration_minutes;
     current_task = task;
     std::cout << "Waiter " << name << " served an order.\n";
 }
@@ -365,7 +383,7 @@ void MaintenanceWorker::do_work(const Task& task, Weekday weekday, unsigned int 
         return;
     }
     is_busy = true;
-    remaining_task_minutes = task.duration_hours * 60U;
+    remaining_task_minutes = task.duration_minutes;
     current_task = task;
     std::cout << "Maintenance worker " << name << " fixed a failure.\n";
 }
