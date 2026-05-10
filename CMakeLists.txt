@@ -20,6 +20,8 @@ add_compile_options(
 add_library(HotelLib
     include/staff.hpp
     src/staff.cpp
+    src/Hotel.cpp
+    src/Simulation.cpp
 )
 target_include_directories(HotelLib PUBLIC include)
 
@@ -30,14 +32,15 @@ endif()
 
 include(CTest)
 if(BUILD_TESTING
-   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_staff.cpp"
-   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/include/hotel.hpp")
+   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_staff.cpp")
     include(FetchContent)
     FetchContent_Declare(Catch2
       GIT_REPOSITORY https://github.com/catchorg/Catch2.git
       GIT_TAG v3.8.1
     )
     FetchContent_MakeAvailable(Catch2)
+    target_compile_options(Catch2 PRIVATE -Wno-error=conversion -Wno-error=sign-conversion)
+    target_compile_options(Catch2WithMain PRIVATE -Wno-error=conversion -Wno-error=sign-conversion)
 
     add_executable(UnitTests tests/test_staff.cpp)
     target_link_libraries(UnitTests PRIVATE HotelLib Catch2::Catch2WithMain)
