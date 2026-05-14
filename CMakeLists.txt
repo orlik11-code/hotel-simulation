@@ -22,6 +22,7 @@ add_library(HotelLib
     src/staff.cpp
     src/Hotel.cpp
     src/Simulation.cpp
+    src/Data_loader.cpp
 )
 target_include_directories(HotelLib PUBLIC include)
 
