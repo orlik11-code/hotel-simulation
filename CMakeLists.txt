@@ -29,6 +29,8 @@ add_library(hotel_logic
         include/FireAlarm.h
         src/EventGenerator.cpp
         include/EventGenerator.h
+        src/HotelEvent.cpp
+        include/HotelEvent.h
 )
 
 target_include_directories(hotel_logic PUBLIC include)

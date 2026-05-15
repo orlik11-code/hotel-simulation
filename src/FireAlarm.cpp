@@ -4,14 +4,12 @@
 
 #include "../include/FireAlarm.h"
 
-FireAlarm::FireAlarm(Hotel &hotel) : hotel(hotel), active(true) {
+FireAlarm::FireAlarm(Hotel &hotel) : HotelEvent(hotel) {
   hotel.set_evacuation(true);
   hotel.set_power(false);
 }
 
 FireAlarm::~FireAlarm() {
-  if (active) {
-    hotel.set_evacuation(false);
-    hotel.set_power(true);
-  }
+  hotel.set_evacuation(false);
+  hotel.set_power(true);
 }

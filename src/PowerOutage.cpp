@@ -4,12 +4,6 @@
 
 #include "../include/PowerOutage.h"
 
-PowerOutage::PowerOutage(Hotel &h) : hotel(h), active(true) {
-  h.set_power(false);
-}
+PowerOutage::PowerOutage(Hotel &h) : HotelEvent(h) { h.set_power(false); }
 
-PowerOutage::~PowerOutage() {
-  if (active) {
-    hotel.set_power(true);
-  }
-}
+PowerOutage::~PowerOutage() { hotel.set_power(true); }

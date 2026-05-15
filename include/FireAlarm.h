@@ -6,18 +6,15 @@
 #define PROI_HOTEL_SYSTEM_MANAGEMENT_FIREALARM_H
 
 #include "Hotel.h"
+#include "HotelEvent.h"
 
-class FireAlarm {
+class FireAlarm : public HotelEvent {
 public:
   FireAlarm(Hotel &hotel);
-  ~FireAlarm();
+  ~FireAlarm() override;
 
   FireAlarm(const FireAlarm &fire_alarm) = delete;
   FireAlarm &operator=(const FireAlarm &fire_alarm) = delete;
-
-private:
-  Hotel &hotel;
-  bool active;
 };
 
 #endif // PROI_HOTEL_SYSTEM_MANAGEMENT_FIREALARM_H

@@ -6,18 +6,15 @@
 #define PROI_ZAD4_POWEROUTAGE_H
 
 #include "Hotel.h"
+#include "HotelEvent.h"
 
-class PowerOutage {
+class PowerOutage : public HotelEvent {
 public:
   PowerOutage(Hotel &h);
-  ~PowerOutage();
+  ~PowerOutage() override;
 
   PowerOutage(const PowerOutage &other) = delete;
   PowerOutage &operator=(const PowerOutage &other) = delete;
-
-private:
-  Hotel &hotel;
-  bool active;
 };
 
 #endif // PROI_ZAD4_POWEROUTAGE_H
