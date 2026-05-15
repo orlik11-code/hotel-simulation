@@ -31,6 +31,8 @@ add_library(hotel_logic
         include/EventGenerator.h
         src/HotelEvent.cpp
         include/HotelEvent.h
+        src/Reservation.cpp
+        include/Reservation.h
 )
 
 target_include_directories(hotel_logic PUBLIC include)
