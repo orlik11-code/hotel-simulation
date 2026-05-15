@@ -33,6 +33,8 @@ add_library(hotel_logic
         include/HotelEvent.h
         src/Reservation.cpp
         include/Reservation.h
+        src/Bill.cpp
+        include/Bill.h
 )
 
 target_include_directories(hotel_logic PUBLIC include)

@@ -4,8 +4,10 @@
 
 #ifndef PROI_HOTEL_SYSTEM_MANAGEMENT_RESERVATION_H
 #define PROI_HOTEL_SYSTEM_MANAGEMENT_RESERVATION_H
+#include "Room.h"
 #include <string>
 #include <vector>
+
 struct Person {
   std::string name;
   std::string surname;
@@ -16,14 +18,16 @@ struct Person {
 
 class Reservation {
 public:
-  Reservation(const std::vector<Person> &p, unsigned int requested_room);
+  Reservation(const std::vector<Person> &p, const Room *r, unsigned int nights);
   const std::vector<Person> &get_people() const;
-  unsigned int get_room_number() const;
+  const Room &get_room() const;
+  unsigned int get_nights() const;
   ~Reservation() = default;
 
 private:
-  unsigned int room_number;
+  const Room *room;
   const std::vector<Person> people;
+  unsigned int nights;
 };
 
 #endif // PROI_HOTEL_SYSTEM_MANAGEMENT_RESERVATION_H

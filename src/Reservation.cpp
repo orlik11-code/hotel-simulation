@@ -4,10 +4,19 @@
 
 #include "../include/Reservation.h"
 
-Reservation::Reservation(const std::vector<Person> &p,
-                         unsigned int requested_room)
-    : room_number(requested_room), people(p) {}
+#include <stdexcept>
 
-unsigned int Reservation::get_room_number() const { return room_number; }
+Reservation::Reservation(const std::vector<Person> &p,
+                         const Room *requested_room, unsigned int nights)
+    : room(requested_room), people(p), nights(nights) {
+  if (room == nullptr) {
+    throw std::invalid_argument(
+        "Room must not be nullptr to make a reservation.");
+  }
+}
+
+const Room &Reservation::get_room() const { return *room; }
 
 const std::vector<Person> &Reservation::get_people() const { return people; }
+
+unsigned int Reservation::get_nights() const { return nights; }
