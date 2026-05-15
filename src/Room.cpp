@@ -91,3 +91,7 @@ bool Room::check_suitability(
 
   return p1 <= available_s_beds;
 }
+
+bool Room::is_occupied() const { return this->occupied; }
+
+void Room::change_occupied() { occupied ^= 1; }

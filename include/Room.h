@@ -16,6 +16,7 @@ public:
 
   bool is_to_clean() const;
   bool is_to_repair() const;
+  bool is_occupied() const;
 
   void set_price(unsigned int price);
   void set_number(unsigned int number);
@@ -25,6 +26,7 @@ public:
   void repair();
   void destroy();
   void new_config(unsigned int s_beds, unsigned int d_beds);
+  void change_occupied();
 
   virtual bool
   check_suitability(const std::vector<unsigned int> &people_sleeping_together);
@@ -46,5 +48,6 @@ protected:
   unsigned int double_beds;
   bool to_clean;
   bool to_repair;
+  bool occupied;
 };
 #endif // PROI_ZAD4_ROOM_H
