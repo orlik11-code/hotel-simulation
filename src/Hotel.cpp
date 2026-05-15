@@ -1,4 +1,4 @@
-#include "Hotel.hpp"
+#include "Hotel.h"
 #include "staff.hpp"
 
 #include <algorithm>
@@ -139,3 +139,7 @@ void Hotel::showReport() const {
               << " | Obsluga: " << room->calculateStaffNeeded() << std::endl;
   }
 }
+
+void Hotel::set_power(bool power) { this->power = power; }
+
+void Hotel::set_evacuation(bool evacuation) { this->evacuation = evacuation; }
