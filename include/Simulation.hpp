@@ -9,6 +9,8 @@ struct SimConfig {
    * = ⅓ h). Typowo: ticsPerDay * minutesPerTick == 24 * 60 (pełna doba).
    */
   unsigned int minutesPerTick = 60;
+  /** 0 = tryb interaktywny (Enter / q); >0 = automatycznie tyle ticków. */
+  unsigned int max_ticks = 0;
 };
 
 class Simulation {

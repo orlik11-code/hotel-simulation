@@ -1,9 +1,8 @@
-#include "../include/staff.hpp"
+#include "staff/Staff.hpp"
+
 #include <algorithm>
 #include <iostream>
-#include <random>
 #include <stdexcept>
-#include <string>
 
 namespace {
 constexpr unsigned int kMaxFatigue = 100U;
@@ -21,25 +20,7 @@ constexpr unsigned int kMaxFatigue = 100U;
     }
     return 0U;
 }
-
 } // namespace
-
-unsigned int get_random_delta()
-{
-    static std::random_device randomize;
-    static std::mt19937 gen(randomize());
-    static std::uniform_int_distribution<unsigned int> dist(0, 60); // maximum delta is 1 hour
-    return dist(gen);
-}
-
-Task::Task(TaskType t, unsigned int base_minutes)
-    : type(t),
-      duration_minutes(base_minutes + get_random_delta()),
-      difficulty(1U),
-      bonus(0U),
-      night_shift(false)
-{
-}
 
 Staff::Staff(unsigned int new_uid,
              const std::string& first_name,
@@ -223,170 +204,6 @@ void Staff::check_schedule(unsigned int day_index, unsigned int start_hour, unsi
     }
 }
 
-unsigned int Receptionist::max_shift_duration_hours() const noexcept
-{
-    return 12U;
-}
-
-StaffRole Receptionist::role() const noexcept
-{
-    return StaffRole::Receptionist;
-}
-
-bool Receptionist::can_handle(const Task& task, Weekday weekday, unsigned int hour_of_day) const noexcept
-{
-    const unsigned int idx = get_day(weekday);
-    if (!is_on_shift(hour_of_day, idx)) {
-        return false;
-    }
-    return task.type == TaskType::CheckIn;
-}
-
-void Receptionist::do_work(const Task& task, Weekday weekday, unsigned int hour_of_day)
-{
-    if (!process_fatigue(task, weekday, hour_of_day)) {
-        std::cout << "Receptionist " << name << " cannot process this task right now.\n";
-        return;
-    }
-    is_busy = true;
-    current_task = task;
-    remaining_task_minutes = task.duration_minutes;
-    std::cout << "Receptionist " << name << " checked in a guest.\n";
-}
-
-unsigned int Housekeeper::max_shift_duration_hours() const noexcept
-{
-    return 8U;
-}
-
-bool Housekeeper::forbids_night_shift_schedule() const noexcept
-{
-    return true;
-}
-
-StaffRole Housekeeper::role() const noexcept
-{
-    return StaffRole::Housekeeper;
-}
-
-bool Housekeeper::can_handle(const Task& task, Weekday weekday, unsigned int hour_of_day) const noexcept
-{
-    const unsigned int idx = get_day(weekday);
-    if (!is_on_shift(hour_of_day, idx)) {
-        return false;
-    }
-    return task.type == TaskType::CleanRoom && !task.night_shift;
-}
-
-void Housekeeper::do_work(const Task& task, Weekday weekday, unsigned int hour_of_day)
-{
-    if (!process_fatigue(task, weekday, hour_of_day)) {
-        std::cout << "Housekeeper " << name << " cannot process this task right now.\n";
-        return;
-    }
-    is_busy = true;
-    remaining_task_minutes = task.duration_minutes;
-    current_task = task;
-    std::cout << "Housekeeper " << name << " cleaned a room.\n";
-}
-
-unsigned int Chef::max_shift_duration_hours() const noexcept
-{
-    return 6U;
-}
-
-bool Chef::forbids_night_shift_schedule() const noexcept
-{
-    return true;
-}
-
-StaffRole Chef::role() const noexcept
-{
-    return StaffRole::Chef;
-}
-
-bool Chef::can_handle(const Task& task, Weekday weekday, unsigned int hour_of_day) const noexcept
-{
-    const unsigned int idx = get_day(weekday);
-    if (!is_on_shift(hour_of_day, idx)) {
-        return false;
-    }
-    return task.type == TaskType::CookMeal;
-}
-
-void Chef::do_work(const Task& task, Weekday weekday, unsigned int hour_of_day)
-{
-    if (!process_fatigue(task, weekday, hour_of_day)) {
-        std::cout << "Chef " << name << " cannot process this task right now.\n";
-        return;
-    }
-    is_busy = true;
-    remaining_task_minutes = task.duration_minutes;
-    current_task = task;
-    std::cout << "Chef " << name << " prepared a meal.\n";
-}
-
-unsigned int Waiter::max_shift_duration_hours() const noexcept
-{
-    return 12U;
-}
-
-StaffRole Waiter::role() const noexcept
-{
-    return StaffRole::Waiter;
-}
-
-bool Waiter::can_handle(const Task& task, Weekday weekday, unsigned int hour_of_day) const noexcept
-{
-    const unsigned int idx = get_day(weekday);
-    if (!is_on_shift(hour_of_day, idx)) {
-        return false;
-    }
-    return task.type == TaskType::ServeMeal;
-}
-
-void Waiter::do_work(const Task& task, Weekday weekday, unsigned int hour_of_day)
-{
-    if (!process_fatigue(task, weekday, hour_of_day)) {
-        std::cout << "Waiter " << name << " cannot process this task right now.\n";
-        return;
-    }
-    is_busy = true;
-    remaining_task_minutes = task.duration_minutes;
-    current_task = task;
-    std::cout << "Waiter " << name << " served an order.\n";
-}
-
-unsigned int MaintenanceWorker::max_shift_duration_hours() const noexcept
-{
-    return 8U;
-}
-
-StaffRole MaintenanceWorker::role() const noexcept
-{
-    return StaffRole::MaintenanceWorker;
-}
-
-bool MaintenanceWorker::can_handle(const Task& task, Weekday weekday, unsigned int hour_of_day) const noexcept
-{
-    const unsigned int idx = get_day(weekday);
-    if (!is_on_shift(hour_of_day, idx)) {
-        return false;
-    }
-    return task.type == TaskType::FixFailure && !task.night_shift;
-}
-
-void MaintenanceWorker::do_work(const Task& task, Weekday weekday, unsigned int hour_of_day)
-{
-    if (!process_fatigue(task, weekday, hour_of_day)) {
-        std::cout << "Maintenance worker " << name << " cannot process this task right now.\n";
-        return;
-    }
-    is_busy = true;
-    remaining_task_minutes = task.duration_minutes;
-    current_task = task;
-    std::cout << "Maintenance worker " << name << " fixed a failure.\n";
-}
 unsigned int Staff::get_day(Weekday day) const
 {
     switch (day) {
@@ -408,59 +225,9 @@ unsigned int Staff::get_day(Weekday day) const
     throw std::invalid_argument("Invalid weekday");
 }
 
-void Receptionist::determine_schedule(Weekday day, Shift shift_type)
-{
-    store_day_shift(day, shift_type);
-}
-
-void Housekeeper::determine_schedule(Weekday day, Shift shift_type)
-{
-    store_day_shift(day, shift_type);
-}
-
-void Chef::determine_schedule(Weekday day, Shift shift_type)
-{
-    store_day_shift(day, shift_type);
-}
-
-void Waiter::determine_schedule(Weekday day, Shift shift_type)
-{
-    store_day_shift(day, shift_type);
-}
-
-void MaintenanceWorker::determine_schedule(Weekday day, Shift shift_type)
-{
-    store_day_shift(day, shift_type);
-}
-
 bool Staff::get_is_busy() const noexcept
 {
     return is_busy;
-}
-
-unsigned int Receptionist::receive_bonus() const noexcept
-{
-    return (current_task.difficulty/4);
-}
-
-unsigned int Housekeeper::receive_bonus() const noexcept
-{
-    return (current_task.difficulty/3)*4;
-}
-
-unsigned int Chef::receive_bonus() const noexcept
-{
-    return (current_task.difficulty*2)/3;
-}
-
-unsigned int MaintenanceWorker::receive_bonus() const noexcept
-{
-    return (current_task.difficulty*3);
-}
-
-unsigned int Waiter::receive_bonus() const noexcept
-{
-    return (current_task.difficulty/5)*8;
 }
 
 void Staff::process_tick(unsigned int elapsed_minutes)

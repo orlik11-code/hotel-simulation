@@ -15,7 +15,20 @@ else ()
 endif ()
 
 add_library(hotel_logic
-        src/staff.cpp
+        include/staff/types.hpp
+        include/staff/Staff.hpp
+        include/staff/Receptionist.hpp
+        include/staff/Housekeeper.hpp
+        include/staff/Chef.hpp
+        include/staff/Waiter.hpp
+        include/staff/MaintenanceWorker.hpp
+        src/staff/Task.cpp
+        src/staff/Staff.cpp
+        src/staff/Receptionist.cpp
+        src/staff/Housekeeper.cpp
+        src/staff/Chef.cpp
+        src/staff/Waiter.cpp
+        src/staff/MaintenanceWorker.cpp
         src/Hotel.cpp
         src/Simulation.cpp
         src/Apartment.cpp
