@@ -2,14 +2,8 @@
 #include "Hotel.h"
 
 struct SimConfig {
-  /** Liczba ticków na jedną „dobę” modelową (np. 24 albo 72). */
   unsigned int ticsPerDay = 24;
-  /**
-   * Ile minut rzeczywistego czasu modelu mija w jednym ticku (np. 60 = 1 h, 20
-   * = ⅓ h). Typowo: ticsPerDay * minutesPerTick == 24 * 60 (pełna doba).
-   */
   unsigned int minutesPerTick = 60;
-  /** 0 = tryb interaktywny (Enter / q); >0 = automatycznie tyle ticków. */
   unsigned int max_ticks = 0;
 };
 
