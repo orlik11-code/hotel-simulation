@@ -1,4 +1,4 @@
-#include "Hotel.h"
+#include "hotel/Hotel.h"
 #include "staff.hpp"
 
 #include <algorithm>

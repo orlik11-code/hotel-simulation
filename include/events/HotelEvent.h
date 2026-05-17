@@ -6,7 +6,7 @@
 #define PROI_HOTEL_SYSTEM_MANAGEMENT_HOTELEVENT_H
 
 #pragma once
-#include "Hotel.h"
+#include "hotel/Hotel.h"
 
 class HotelEvent {
 public:

@@ -1,7 +1,7 @@
 //
 // Created by orlik on 27.04.2026.
 //
-#include "../include/Room.h"
+#include "rooms/Room.h"
 
 #include <algorithm>
 #include <numeric>

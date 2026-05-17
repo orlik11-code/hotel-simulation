@@ -2,7 +2,7 @@
 // Created by orlik on 15.05.2026.
 //
 
-#include "../include/Reservation.h"
+#include "booking/Reservation.h"
 
 #include <stdexcept>
 

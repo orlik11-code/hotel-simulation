@@ -2,10 +2,10 @@
 // Created by orlik on 15.05.2026.
 //
 
-#include "../include/EventGenerator.h"
+#include "events/EventGenerator.h"
 
-#include "FireAlarm.h"
-#include "PowerOutage.h"
+#include "events/FireAlarm.h"
+#include "events/PowerOutage.h"
 
 #include <random>
 Hotel &EventGenerator::get_hotel() const { return this->hotel; }

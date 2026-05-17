@@ -2,7 +2,7 @@
 // Created by orlik on 15.05.2026.
 //
 
-#include "../include/PowerOutage.h"
+#include "events/PowerOutage.h"
 
 PowerOutage::PowerOutage(Hotel &h) : HotelEvent(h) { h.set_power(false); }
 

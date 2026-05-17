@@ -3,12 +3,9 @@
 //
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include "../include/Apartment.h"
-#include "../include/DoubleRoom.h"
-#include "../include/Hotel.h"
-#include "../include/SingleRoom.h"
-#include "../include/TripleRoom.h"
-#include "../include/doctest.h"
+#include "doctest.h"
+#include "hotel/Hotel.h"
+#include "rooms/rooms.hpp"
 #include <memory>
 #include <stdexcept>
 #include <vector>

@@ -4,7 +4,7 @@
 
 #ifndef PROI_HOTEL_SYSTEM_MANAGEMENT_RESERVATION_H
 #define PROI_HOTEL_SYSTEM_MANAGEMENT_RESERVATION_H
-#include "Room.h"
+#include "rooms/Room.h"
 #include <string>
 #include <vector>
 

@@ -4,7 +4,7 @@
 
 #ifndef PROI_ZAD4_TRIPLEROOM_H
 #define PROI_ZAD4_TRIPLEROOM_H
-#include "Room.h"
+#include "rooms/Room.h"
 
 class TripleRoom : public Room {
 public:

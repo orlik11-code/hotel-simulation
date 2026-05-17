@@ -5,8 +5,8 @@
 #ifndef PROI_ZAD4_POWEROUTAGE_H
 #define PROI_ZAD4_POWEROUTAGE_H
 
-#include "Hotel.h"
-#include "HotelEvent.h"
+#include "events/HotelEvent.h"
+#include "hotel/Hotel.h"
 
 class PowerOutage : public HotelEvent {
 public:

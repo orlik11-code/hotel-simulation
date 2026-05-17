@@ -4,8 +4,8 @@
 
 #ifndef PROI_HOTEL_SYSTEM_MANAGEMENT_BILL_H
 #define PROI_HOTEL_SYSTEM_MANAGEMENT_BILL_H
-#include "Reservation.h"
-#include "Room.h"
+#include "booking/Reservation.h"
+#include "rooms/Room.h"
 
 class Bill {
 public:

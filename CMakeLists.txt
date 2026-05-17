@@ -15,6 +15,7 @@ else ()
 endif ()
 
 add_library(hotel_logic
+        # staff
         include/staff/types.hpp
         include/staff/Staff.hpp
         include/staff/Receptionist.hpp
@@ -29,25 +30,47 @@ add_library(hotel_logic
         src/staff/Chef.cpp
         src/staff/Waiter.cpp
         src/staff/MaintenanceWorker.cpp
-        src/Hotel.cpp
-        src/Simulation.cpp
-        src/Apartment.cpp
-        src/DoubleRoom.cpp
-        src/Room.cpp
-        src/SingleRoom.cpp
-        src/TripleRoom.cpp
-        src/PowerOutage.cpp
-        include/PowerOutage.h
-        src/FireAlarm.cpp
-        include/FireAlarm.h
-        src/EventGenerator.cpp
-        include/EventGenerator.h
-        src/HotelEvent.cpp
-        include/HotelEvent.h
-        src/Reservation.cpp
-        include/Reservation.h
-        src/Bill.cpp
-        include/Bill.h
+        src/staff/staff_loader.cpp
+        # rooms
+        include/rooms/Room.h
+        include/rooms/SingleRoom.h
+        include/rooms/DoubleRoom.h
+        include/rooms/TripleRoom.h
+        include/rooms/Apartment.h
+        src/rooms/Room.cpp
+        src/rooms/SingleRoom.cpp
+        src/rooms/DoubleRoom.cpp
+        src/rooms/TripleRoom.cpp
+        src/rooms/Apartment.cpp
+        # hotel
+        include/hotel/Hotel.h
+        src/hotel/Hotel.cpp
+        # events
+        include/events/HotelEvent.h
+        include/events/PowerOutage.h
+        include/events/FireAlarm.h
+        include/events/EventGenerator.h
+        src/events/HotelEvent.cpp
+        src/events/PowerOutage.cpp
+        src/events/FireAlarm.cpp
+        src/events/EventGenerator.cpp
+        # booking
+        include/booking/Reservation.h
+        include/booking/Bill.h
+        src/booking/Reservation.cpp
+        src/booking/Bill.cpp
+        # simulation
+        include/simulation/Simulation.hpp
+        src/simulation/Simulation.cpp
+        # config / loaders
+        include/config/file_parse.hpp
+        include/config/sim_config_parse.hpp
+        include/config/config_loader.hpp
+        include/config/hotel_loader.hpp
+        src/config/file_parse.cpp
+        src/config/sim_config_parse.cpp
+        src/config/config_loader.cpp
+        src/config/hotel_loader.cpp
 )
 
 target_include_directories(hotel_logic PUBLIC include)
@@ -75,7 +98,11 @@ if (BUILD_TESTING)
     target_compile_options(Catch2WithMain PRIVATE -Wno-error)
 
     if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_staff.cpp")
-        add_executable(UnitTests tests/test_staff.cpp)
+        add_executable(UnitTests
+                tests/test_staff.cpp
+                tests/test_config_loader.cpp
+                tests/test_staff_loader.cpp
+                tests/test_hotel_loader.cpp)
         target_link_libraries(UnitTests PRIVATE hotel_logic Catch2::Catch2WithMain)
         add_test(NAME UnitTests COMMAND UnitTests)
     endif ()

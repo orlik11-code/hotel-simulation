@@ -1,7 +1,7 @@
 #ifndef HOTEL_H
 #define HOTEL_H
 
-#include "Room.h"
+#include "rooms/Room.h"
 #include "staff.hpp"
 #include <algorithm>
 #include <iostream>

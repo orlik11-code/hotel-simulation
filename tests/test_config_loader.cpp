@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "config_loader.hpp"
+#include "config/config_loader.hpp"
 
 #include <cstdio>
 #include <fstream>

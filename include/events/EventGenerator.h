@@ -5,8 +5,8 @@
 #ifndef PROI_HOTEL_SYSTEM_MANAGEMENT_EVENTGENERATOR_H
 #define PROI_HOTEL_SYSTEM_MANAGEMENT_EVENTGENERATOR_H
 
-#include "Hotel.h"
-#include "HotelEvent.h"
+#include "events/HotelEvent.h"
+#include "hotel/Hotel.h"
 
 #include <random>
 

@@ -2,7 +2,7 @@
 // Created by orlik on 27.04.2026.
 //
 
-#include "../include/DoubleRoom.h"
+#include "rooms/DoubleRoom.h"
 
 #include <algorithm>
 #include <numeric>

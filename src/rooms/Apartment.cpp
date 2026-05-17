@@ -2,7 +2,7 @@
 // Created by orlik on 27.04.2026.
 //
 
-#include "../include/Apartment.h"
+#include "rooms/Apartment.h"
 
 Apartment::Apartment(double area, unsigned int number, unsigned int floor,
                      unsigned int single_beds, unsigned int double_beds,

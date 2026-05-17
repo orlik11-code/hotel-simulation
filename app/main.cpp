@@ -7,11 +7,8 @@
 #include <string>
 #include <vector>
 
-#include "Apartment.h"
-#include "DoubleRoom.h"
-#include "Hotel.h"
-#include "SingleRoom.h"
-#include "TripleRoom.h"
+#include "hotel/Hotel.h"
+#include "rooms/rooms.hpp"
 
 void printMenu() {
   std::cout << "\n--- SYSTEM ZARZADZANIA HOTELEM ---\n";

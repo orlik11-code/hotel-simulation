@@ -1,4 +1,4 @@
-#include "Simulation.hpp"
+#include "simulation/Simulation.hpp"
 
 #include <iostream>
 #include <string>
@@ -11,6 +11,8 @@ Simulation::Simulation(const SimConfig &new_sim_config) {
 }
 
 Hotel &Simulation::get_hotel() { return hotel; }
+
+void Simulation::set_config(const SimConfig &sim_config) { config = sim_config; }
 
 void Simulation::tick() {
   current_tick++;

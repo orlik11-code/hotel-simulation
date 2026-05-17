@@ -1,5 +1,5 @@
 #pragma once
-#include "Hotel.h"
+#include "hotel/Hotel.h"
 
 struct SimConfig {
   unsigned int ticsPerDay = 24;
@@ -16,6 +16,8 @@ private:
 
 public:
   Simulation(const SimConfig &sim_config);
+
+  void set_config(const SimConfig &sim_config);
 
   void run();
   void tick();

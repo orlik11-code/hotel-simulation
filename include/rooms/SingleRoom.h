@@ -4,7 +4,7 @@
 
 #ifndef PROI_ZAD4_SINGLEROOM_H
 #define PROI_ZAD4_SINGLEROOM_H
-#include "Room.h"
+#include "rooms/Room.h"
 
 class SingleRoom : public Room {
 public:

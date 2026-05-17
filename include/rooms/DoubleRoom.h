@@ -4,7 +4,7 @@
 
 #ifndef PROI_ZAD4_DOUBLEROOM_H
 #define PROI_ZAD4_DOUBLEROOM_H
-#include "Room.h"
+#include "rooms/Room.h"
 
 class DoubleRoom : public Room {
 public:
@@ -14,7 +14,7 @@ public:
 
   bool check_suitability(
       const std::vector<unsigned int> &people_sleeping_together) override;
-  
+
   unsigned int calculateNightlyPrice() const override;
   unsigned int calculateStaffNeeded() const override;
 };

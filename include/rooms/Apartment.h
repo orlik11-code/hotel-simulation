@@ -2,9 +2,10 @@
 // Created by orlik on 27.04.2026.
 //
 
-#include "Room.h"
 #ifndef PROI_ZAD4_APARTMENT_H
 #define PROI_ZAD4_APARTMENT_H
+
+#include "rooms/Room.h"
 
 class Apartment : public Room {
 public:
