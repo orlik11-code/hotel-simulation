@@ -140,6 +140,6 @@ void Hotel::showReport() const {
   }
 }
 
-void Hotel::set_power(bool power) { this->power = power; }
+void Hotel::set_power(bool on) { power = on; }
 
-void Hotel::set_evacuation(bool evacuation) { this->evacuation = evacuation; }
+void Hotel::set_evacuation(bool on) { evacuation = on; }

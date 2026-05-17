@@ -38,6 +38,7 @@ add_library(hotel_logic
 )
 
 target_include_directories(hotel_logic PUBLIC include)
+target_compile_options(hotel_logic PRIVATE -Wno-error)
 
 if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
     add_executable(HotelApp src/main.cpp)
@@ -57,6 +58,8 @@ if (BUILD_TESTING)
             GIT_TAG v3.8.1
     )
     FetchContent_MakeAvailable(Catch2)
+    target_compile_options(Catch2 PRIVATE -Wno-error)
+    target_compile_options(Catch2WithMain PRIVATE -Wno-error)
 
     if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_staff.cpp")
         add_executable(UnitTests tests/test_staff.cpp)
