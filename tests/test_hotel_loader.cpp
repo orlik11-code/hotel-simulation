@@ -24,6 +24,7 @@ TEST_CASE("Hotel_loader reads simulation and staff sections") {
                         "tics_per_day=12\n"
                         "minutes_per_tick=30\n"
                         "max_ticks=5\n"
+                        "event_probability=3\n"
                         "[worker]\n"
                         "uid=10\n"
                         "role=Chef\n"
@@ -43,6 +44,7 @@ TEST_CASE("Hotel_loader reads simulation and staff sections") {
   REQUIRE(cfg.ticsPerDay == 12U);
   REQUIRE(cfg.minutesPerTick == 30U);
   REQUIRE(cfg.max_ticks == 5U);
+  REQUIRE(cfg.event_probability == 3U);
   REQUIRE(hotel.check_existance(10U));
   Staff *chef = hotel.find_by_uid(10U);
   REQUIRE(chef != nullptr);

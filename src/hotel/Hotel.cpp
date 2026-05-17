@@ -140,6 +140,16 @@ void Hotel::showReport() const {
   }
 }
 
+bool Hotel::get_actual_failure() const noexcept
+{
+  return actual_failure;
+}
+
+bool Hotel::set_actual_failure(bool value) {
+  actual_failure = value;
+  return actual_failure;
+}
+
 void Hotel::set_power(bool on) { power = on; }
 
 void Hotel::set_evacuation(bool on) { evacuation = on; }

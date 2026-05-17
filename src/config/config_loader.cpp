@@ -59,6 +59,9 @@ SimConfig Config_loader::from_argv(int argc, char *argv[],
           file_parse::parse_positive(argv[++i], "minutes_per_tick");
     } else if (arg == "--max-ticks" && i + 1 < argc) {
       config.max_ticks = file_parse::parse_non_negative(argv[++i], "max_ticks");
+    } else if (arg == "--event-probability" && i + 1 < argc) {
+      config.event_probability =
+          file_parse::parse_percent(argv[++i], "event_probability");
     }
   }
 
@@ -87,9 +90,11 @@ void Config_loader::print_usage(const char *program_name) {
             << "  --tics-per-day <n>      Ticks per simulated day (default 24)\n"
             << "  --minutes-per-tick <n>  Model minutes per tick (default 60)\n"
             << "  --max-ticks <n>         Run n ticks (0 = interactive, default 0)\n"
+            << "  --event-probability <n> True % chance per tick (1–100 roll), 0–30 (default 5)\n"
             << "  -h, --help              Show this message\n\n"
             << "Config file format (one key=value per line, # comments allowed):\n"
             << "  tics_per_day=24\n"
             << "  minutes_per_tick=60\n"
-            << "  max_ticks=10\n";
+            << "  max_ticks=10\n"
+            << "  event_probability=5\n";
 }

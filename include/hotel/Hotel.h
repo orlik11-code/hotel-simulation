@@ -14,11 +14,14 @@ private:
   std::vector<std::unique_ptr<Room>> rooms;
   bool power;
   bool evacuation;
+  bool actual_failure = false;
 
 public:
   Hotel();
 
   [[nodiscard]] bool check_existance(unsigned int worker_uid) const;
+  [[nodiscard]] bool get_actual_failure() const noexcept;
+  bool set_actual_failure(bool value);
   void add_worker(std::unique_ptr<Staff> worker);
   void tick(unsigned int elapsed_minutes);
 

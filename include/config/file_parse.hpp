@@ -20,6 +20,9 @@ split_key_value(const std::string &line, unsigned int line_no);
 [[nodiscard]] unsigned int parse_non_negative(const std::string &value,
                                               const std::string &field);
 
+[[nodiscard]] unsigned int parse_percent(const std::string &value,
+                                         const std::string &field);
+
 /** Returns inner name for lines like "[worker]" (without brackets), or empty. */
 [[nodiscard]] std::string parse_section_header(std::string_view line);
 

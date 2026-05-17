@@ -3,3 +3,5 @@
 //
 
 #include "events/HotelEvent.h"
+
+HotelEvent::~HotelEvent() = default;

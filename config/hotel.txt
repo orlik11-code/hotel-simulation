@@ -4,6 +4,7 @@
 tics_per_day=24
 minutes_per_tick=60
 max_ticks=10
+event_probability=5
 
 [worker]
 uid=1

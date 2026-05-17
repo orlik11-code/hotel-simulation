@@ -1,5 +1,6 @@
 #include "config/file_parse.hpp"
 
+#include <cmath>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -58,6 +59,26 @@ unsigned int parse_non_negative(const std::string &value,
   }
   try {
     return static_cast<unsigned int>(std::stoul(value));
+  } catch (const std::exception &) {
+    throw std::invalid_argument("Invalid value for " + field + ": " + value);
+  }
+}
+
+unsigned int parse_percent(const std::string &value, const std::string &field) {
+  if (value.empty()) {
+    throw std::invalid_argument("Empty value for " + field);
+  }
+  try {
+    const double parsed = std::stod(value);
+    if (parsed < 0.0) {
+      throw std::invalid_argument("Values cannot be negative in " + field);
+    }
+    if (parsed > 30.0) {
+      throw std::invalid_argument(field + " cannot exceed 30");
+    }
+    return static_cast<unsigned int>(std::lround(parsed));
+  } catch (const std::invalid_argument &) {
+    throw;
   } catch (const std::exception &) {
     throw std::invalid_argument("Invalid value for " + field + ": " + value);
   }

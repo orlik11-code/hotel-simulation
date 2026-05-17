@@ -21,12 +21,14 @@ TEST_CASE("Config_loader reads key/value file into SimConfig") {
   write_temp_config(path,
                     "tics_per_day=12\n"
                     "minutes_per_tick=30\n"
-                    "max_ticks=5\n");
+                    "max_ticks=5\n"
+                    "event_probability=2.5\n");
 
   const SimConfig cfg = Config_loader::from_file(path);
   REQUIRE(cfg.ticsPerDay == 12U);
   REQUIRE(cfg.minutesPerTick == 30U);
   REQUIRE(cfg.max_ticks == 5U);
+  REQUIRE(cfg.event_probability == 3U);
 
   std::remove(path.c_str());
 }
