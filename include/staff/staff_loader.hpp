@@ -11,3 +11,4 @@ public:
   /** Reads {@code --staff <path>} from argv if present. */
   static void load_from_argv(Hotel &hotel, int argc, char *argv[]);
 };
+    
