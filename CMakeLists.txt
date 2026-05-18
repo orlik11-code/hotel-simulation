@@ -102,7 +102,8 @@ if (BUILD_TESTING)
                 tests/test_staff.cpp
                 tests/test_config_loader.cpp
                 tests/test_staff_loader.cpp
-                tests/test_hotel_loader.cpp)
+                tests/test_hotel_loader.cpp
+                tests/test_simulation_date.cpp)
         target_link_libraries(UnitTests PRIVATE hotel_logic Catch2::Catch2WithMain)
         add_test(NAME UnitTests COMMAND UnitTests)
     endif ()

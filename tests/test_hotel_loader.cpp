@@ -2,7 +2,9 @@
 
 #include "config/hotel_loader.hpp"
 #include "hotel/Hotel.h"
+#include "simulation/Simulation.hpp"
 
+#include <chrono>
 #include <cstdio>
 #include <fstream>
 #include <string>
@@ -25,6 +27,7 @@ TEST_CASE("Hotel_loader reads simulation and staff sections") {
                         "minutes_per_tick=30\n"
                         "max_ticks=5\n"
                         "event_probability=3\n"
+                        "date_start=2026-01-05\n"
                         "[worker]\n"
                         "uid=10\n"
                         "role=Chef\n"
@@ -45,6 +48,10 @@ TEST_CASE("Hotel_loader reads simulation and staff sections") {
   REQUIRE(cfg.minutesPerTick == 30U);
   REQUIRE(cfg.max_ticks == 5U);
   REQUIRE(cfg.event_probability == 3U);
+  REQUIRE(cfg.date_start.ok());
+  REQUIRE(cfg.date_start == std::chrono::year_month_day{
+                               std::chrono::year{2026}, std::chrono::month{1},
+                               std::chrono::day{5}});
   REQUIRE(hotel.check_existance(10U));
   Staff *chef = hotel.find_by_uid(10U);
   REQUIRE(chef != nullptr);

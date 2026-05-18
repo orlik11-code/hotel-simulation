@@ -18,6 +18,8 @@ void apply_key(SimConfig &config, const std::string &key,
   } else if (key == "event_probability") {
     config.event_probability =
         file_parse::parse_percent(value, "event_probability");
+  } else if (key == "date_start") {
+    config.date_start = file_parse::parse_date(value, "date_start");
   } else {
     throw std::invalid_argument("Unknown simulation key: " + key);
   }

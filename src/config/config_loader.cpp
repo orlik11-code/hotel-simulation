@@ -96,5 +96,6 @@ void Config_loader::print_usage(const char *program_name) {
             << "  tics_per_day=24\n"
             << "  minutes_per_tick=60\n"
             << "  max_ticks=10\n"
-            << "  event_probability=5\n";
+            << "  event_probability=5\n"
+            << "  date_start=2026-05-18\n";
 }

@@ -65,4 +65,8 @@ struct Task {
 
     /** Bazowe minuty + losowy dodatek — implementacja w src/staff/Task.cpp. */
     Task(TaskType t, unsigned int base_minutes);
+
+    /** Fabryka zadania meldowania/wymeldowania dla recepcjonisty.
+     *  Czas trwania losowy w przedziale 1–10 minut włącznie. */
+    [[nodiscard]] static Task make_check_in();
 };

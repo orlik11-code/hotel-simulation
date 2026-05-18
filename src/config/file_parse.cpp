@@ -1,5 +1,6 @@
 #include "config/file_parse.hpp"
 
+#include <chrono>
 #include <cmath>
 #include <stdexcept>
 #include <string>
@@ -82,6 +83,54 @@ unsigned int parse_percent(const std::string &value, const std::string &field) {
   } catch (const std::exception &) {
     throw std::invalid_argument("Invalid value for " + field + ": " + value);
   }
+}
+
+std::chrono::year_month_day parse_date(const std::string &value,
+                                       const std::string &field) {
+  const auto first_dash = value.find('-');
+  const auto second_dash =
+      first_dash == std::string::npos ? std::string::npos
+                                      : value.find('-', first_dash + 1U);
+  if (first_dash == std::string::npos || second_dash == std::string::npos ||
+      value.find('-', second_dash + 1U) != std::string::npos) {
+    throw std::invalid_argument(field +
+                                " must use YYYY-MM-DD format: " + value);
+  }
+
+  const std::string year_part = value.substr(0U, first_dash);
+  const std::string month_part =
+      value.substr(first_dash + 1U, second_dash - first_dash - 1U);
+  const std::string day_part = value.substr(second_dash + 1U);
+
+  if (year_part.size() != 4U) {
+    throw std::invalid_argument(field + " year must have 4 digits: " + value);
+  }
+
+  int year = 0;
+  try {
+    year = std::stoi(year_part);
+  } catch (const std::exception &) {
+    throw std::invalid_argument("Invalid year in " + field + ": " + value);
+  }
+
+  const unsigned int month = parse_positive(month_part, field + " (month)");
+  const unsigned int day = parse_positive(day_part, field + " (day)");
+
+  if (month > 12U) {
+    throw std::invalid_argument(field + " month must be 1–12: " + value);
+  }
+
+  const std::chrono::year_month_day parsed{
+      std::chrono::year{year},
+      std::chrono::month{month},
+      std::chrono::day{day}};
+
+  if (!parsed.ok()) {
+    throw std::invalid_argument("Invalid calendar date for " + field + ": " +
+                                value);
+  }
+
+  return parsed;
 }
 
 std::string parse_section_header(std::string_view line) {

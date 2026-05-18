@@ -2,6 +2,7 @@
 
 #include "config/config_loader.hpp"
 
+#include <chrono>
 #include <cstdio>
 #include <fstream>
 #include <string>
@@ -73,6 +74,27 @@ TEST_CASE("Config_loader rejects negative values in file") {
 TEST_CASE("Config_loader rejects unknown keys") {
   const std::string path = "test_config_loader_bad.conf";
   write_temp_config(path, "unknown_key=1\n");
+
+  REQUIRE_THROWS_AS(Config_loader::from_file(path), std::invalid_argument);
+  std::remove(path.c_str());
+}
+
+TEST_CASE("Config_loader reads date_start as year_month_day") {
+  const std::string path = "test_config_loader_date.conf";
+  write_temp_config(path, "date_start=2026-05-18\n");
+
+  const SimConfig cfg = Config_loader::from_file(path);
+  REQUIRE(cfg.date_start.ok());
+  REQUIRE(cfg.date_start.year() == std::chrono::year{2026});
+  REQUIRE(cfg.date_start.month() == std::chrono::month{5});
+  REQUIRE(cfg.date_start.day() == std::chrono::day{18});
+
+  std::remove(path.c_str());
+}
+
+TEST_CASE("Config_loader rejects invalid date_start") {
+  const std::string path = "test_config_loader_bad_date.conf";
+  write_temp_config(path, "date_start=2026-02-30\n");
 
   REQUIRE_THROWS_AS(Config_loader::from_file(path), std::invalid_argument);
   std::remove(path.c_str());

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -22,6 +23,10 @@ split_key_value(const std::string &line, unsigned int line_no);
 
 [[nodiscard]] unsigned int parse_percent(const std::string &value,
                                          const std::string &field);
+
+/** @throws std::invalid_argument if value is not YYYY-MM-DD or not a valid date */
+[[nodiscard]] std::chrono::year_month_day parse_date(const std::string &value,
+                                                     const std::string &field);
 
 /** Returns inner name for lines like "[worker]" (without brackets), or empty. */
 [[nodiscard]] std::string parse_section_header(std::string_view line);
