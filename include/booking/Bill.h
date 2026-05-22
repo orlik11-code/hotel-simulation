@@ -4,17 +4,17 @@
 
 #ifndef PROI_HOTEL_SYSTEM_MANAGEMENT_BILL_H
 #define PROI_HOTEL_SYSTEM_MANAGEMENT_BILL_H
+#include "../rooms/Room.h"
 #include "booking/Reservation.h"
-#include "rooms/Room.h"
 
 class Bill {
 public:
-  Bill(Reservation &reservation);
+  Bill(const Reservation &reservation);
   unsigned int get_total_bill() const;
   ~Bill() = default;
 
 private:
-  Reservation *reservation;
+  const Reservation *reservation;
   unsigned int total_bill;
 };
 

@@ -14,12 +14,14 @@ private:
   std::vector<std::unique_ptr<Staff>> workers;
   std::vector<std::unique_ptr<Room>> rooms;
   // a co z rezerwacjami ? podepnij prosze rezerwacje tutaj
+
   // zrób kolekcje z rezerwacjami abym mógł podpiąć
   // std::vector<Reservation> reservations;
   bool power;
   bool evacuation;
   bool actual_failure = false;
-  // dodałem, aby łatwiej było ogarnąć wymeldowania jako doba hotelowa domyslnie 8
+  // dodałem, aby łatwiej było ogarnąć wymeldowania jako doba hotelowa domyslnie
+  // 8
   unsigned int hotel_hour_start = 8;
   unsigned int hotel_hour_end = 16;
 
@@ -32,7 +34,6 @@ public:
   bool set_actual_failure(bool value);
   void add_worker(std::unique_ptr<Staff> worker);
   void tick(unsigned int elapsed_minutes);
-
 
   Staff *find_by_uid(unsigned int uid);
   std::vector<Staff *> find_by_role(StaffRole role);
