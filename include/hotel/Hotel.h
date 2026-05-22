@@ -14,9 +14,15 @@ private:
   std::vector<std::unique_ptr<Staff>> workers;
   std::vector<std::unique_ptr<Room>> rooms;
   // a co z rezerwacjami ? podepnij prosze rezerwacje tutaj
-
+  std::vector<std::unique_ptr<Reservation>> reservations;
   // zrób kolekcje z rezerwacjami abym mógł podpiąć
-  // std::vector<Reservation> reservations;
+  // std::vector<Reservation> reservations
+
+  /* tutaj lepiej trzymac unique_ptr, rezerwacje beda tworzone
+  w innej klasie, raczej w simulation, wiec narazimy sie na kopiowanie, po
+  prostu zrob std::make_unique i uzyj add_reservation
+  */
+
   bool power;
   bool evacuation;
   bool actual_failure = false;
@@ -24,6 +30,7 @@ private:
   // 8
   unsigned int hotel_hour_start = 8;
   unsigned int hotel_hour_end = 16;
+  int balance = 0;
 
 public:
   Hotel();
@@ -31,6 +38,7 @@ public:
   [[nodiscard]] bool check_existance(unsigned int worker_uid) const;
   [[nodiscard]] bool get_actual_failure() const noexcept;
   [[nodiscard]] unsigned int get_hotel_hour() const noexcept;
+  [[nodiscard]] unsigned int get_hotel_hour_end() const noexcept;
   bool set_actual_failure(bool value);
   void add_worker(std::unique_ptr<Staff> worker);
   void tick(unsigned int elapsed_minutes);
@@ -49,6 +57,13 @@ public:
 
   void set_power(bool power);
   void set_evacuation(bool evacuation);
+
+  void add_reservation(std::unique_ptr<Reservation> reservation_up);
+
+  int get_balance() const;
+  void change_balance(int change);
+
+  std::vector<Reservation *> get_reservations() const;
 };
 
 #endif

@@ -140,10 +140,7 @@ void Hotel::showReport() const {
   }
 }
 
-bool Hotel::get_actual_failure() const noexcept
-{
-  return actual_failure;
-}
+bool Hotel::get_actual_failure() const noexcept { return actual_failure; }
 
 bool Hotel::set_actual_failure(bool value) {
   actual_failure = value;
@@ -154,4 +151,28 @@ void Hotel::set_power(bool on) { power = on; }
 
 void Hotel::set_evacuation(bool on) { evacuation = on; }
 
-unsigned int Hotel::get_hotel_hour() const noexcept {return hotel_hour;}
+unsigned int Hotel::get_hotel_hour() const noexcept {
+  return hotel_hour;
+} /* błąd kompilacji */
+
+unsigned int Hotel::get_hotel_hour_end() const noexcept {
+  return hotel_hour_end;
+}
+
+void Hotel::add_reservation(std::unique_ptr<Reservation> reservation_up) {
+  this->reservations.push_back(std::move(reservation_up));
+}
+
+int Hotel::get_balance() const { return balance; }
+
+void Hotel::change_balance(int change) { balance += change; }
+
+std::vector<Reservation *> Hotel::get_reservations() const {
+  std::vector<Reservation *> res;
+
+  auto view = reservations |
+              std::views::transform([](const auto &ptr) { return ptr.get(); });
+
+  std::ranges::copy(view, std::back_inserter(res));
+  return res;
+}
