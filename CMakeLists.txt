@@ -71,6 +71,11 @@ add_library(hotel_logic
         src/config/sim_config_parse.cpp
         src/config/config_loader.cpp
         src/config/hotel_loader.cpp
+        #guests
+        include/guests/Guest.hpp
+        include/guests/VIP.hpp
+        include/guests/Family.hpp
+        include/guests/Business.hpp
 )
 
 target_include_directories(hotel_logic PUBLIC include)
