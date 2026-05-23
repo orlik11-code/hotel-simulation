@@ -42,7 +42,7 @@ Reservation::Reservation(const std::vector<Person> &p,
 }
 
 bool Reservation::check_resolved(std::chrono::sys_days hotel_time) const {
-  if (hotel_time > std::chrono::sys_days{check_out}) {
+  if (hotel_time >= std::chrono::sys_days{check_out}) {
     return true;
   }
   return false;
@@ -75,3 +75,18 @@ std::chrono::days Reservation::get_nights() const { return nights; }
 bool Reservation::get_food_included() const { return food_included; }
 
 unsigned int Reservation::get_food_price() const { return food_price; };
+
+bool Reservation::get_check_out_request() const { return check_out_request; }
+
+void Reservation::request_check_out(std::chrono::sys_days hotel_time) {
+  if (this->check_resolved(hotel_time)) {
+    check_out_request = true;
+    return;
+  }
+  auto dates_difference = hotel_time - std::chrono::sys_days{check_out};
+  int detailed_error_info =
+      std::chrono::duration_cast<std::chrono::days>(dates_difference).count();
+  throw(std::logic_error(
+      "Check out may be requested on the last day of stay. Today is " +
+      std::to_string(detailed_error_info) + " days before that."));
+}
