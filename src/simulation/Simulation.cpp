@@ -13,7 +13,8 @@ namespace {
 constexpr unsigned int kFailureDestroyAfterMinutes = 40U;
 
 /** Maps std::chrono weekday to simulation index (0 = Monday, 6 = Sunday). */
-[[nodiscard]] unsigned int weekday_index_from_sys_days(std::chrono::sys_days day) {
+[[nodiscard]] unsigned int
+weekday_index_from_sys_days(std::chrono::sys_days day) {
   const std::chrono::weekday wd{day};
   const unsigned int c = wd.c_encoding();
   if (c == 0U) {
@@ -26,16 +27,15 @@ constexpr unsigned int kFailureDestroyAfterMinutes = 40U;
 
 Simulation::Simulation(const SimConfig &new_sim_config)
     : hotel(), config(new_sim_config), current_tick(0U), is_running(true),
-      time_with_fail(0U),
-      event_generator(std::make_unique<EventGenerator>(
-          hotel, config.event_probability)) {}
+      time_with_fail(0U), event_generator(std::make_unique<EventGenerator>(
+                              hotel, config.event_probability)) {}
 
 Hotel &Simulation::get_hotel() { return hotel; }
 
 void Simulation::set_config(const SimConfig &sim_config) {
   config = sim_config;
-  event_generator = std::make_unique<EventGenerator>(hotel,
-                                                     config.event_probability);
+  event_generator =
+      std::make_unique<EventGenerator>(hotel, config.event_probability);
 }
 
 void Simulation::try_fix_failure() {
@@ -59,17 +59,21 @@ void Simulation::try_fix_failure() {
 //   (void)day;
 //   // TODO: odkomentować, gdy będą:
 //   //   - Hotel::get_reservations() zwracające kolekcję Reservation
-//   //   - Reservation::get_checkin() / get_checkout() zwracające std::chrono::sys_days
+//   //   - Reservation::get_checkin() / get_checkout() zwracające
+//   std::chrono::sys_days
 //   //   - (opcjonalnie) Hotel::get_hotel_hour_end()
-//   // Recepcjoniści obsługują meldowanie/wymeldowanie w godzinach pracy hotelu.
+//   // Recepcjoniści obsługują meldowanie/wymeldowanie w godzinach pracy
+//   hotelu.
 //   // Zadanie recepcjonisty (Task::make_check_in()) trwa losowo 1–10 minut.
-//   if (hour >= hotel.get_hotel_hour() && hour < /* hotel.get_hotel_hour_end() */ 16U)
+//   if (hour >= hotel.get_hotel_hour() && hour < /* hotel.get_hotel_hour_end()
+//   */ 16U)
 //   {
 //     for (const Reservation& reservation : hotel.get_reservations())
 //     {
-//       const bool is_checkin_today  = reservation.get_checkin()  == actual_date();
-//       const bool is_checkout_today = reservation.get_checkout() == actual_date();
-//       if (!is_checkin_today && !is_checkout_today && reservation.is_resoved())
+//       const bool is_checkin_today  = reservation.get_checkin()  ==
+//       actual_date(); const bool is_checkout_today =
+//       reservation.get_checkout() == actual_date(); if (!is_checkin_today &&
+//       !is_checkout_today && reservation.is_resoved())
 //       {
 //         continue;
 //       }
@@ -83,7 +87,8 @@ void Simulation::try_fix_failure() {
 //       {
 //   //       // Brak wolnego recepcjonisty — kara/awaria.
 //   //       // Uwaga: time_with_fail jest współdzielone z try_fix_failure();
-//   //       // docelowo lepiej trzymać osobne pole (np. time_with_no_receptionist).
+//   //       // docelowo lepiej trzymać osobne pole (np.
+//   time_with_no_receptionist).
 //         time_with_fail += config.minutesPerTick / 10U;
 //         if (time_with_fail >= kFailureDestroyAfterMinutes)
 //         {
@@ -109,13 +114,10 @@ void Simulation::tick() {
   const unsigned int hour = hour_of_day();
   const unsigned int day = weekday();
 
-  if (hotel.get_actual_failure())
-  {
+  if (hotel.get_actual_failure()) {
     try_fix_failure();
-  }
-  else if (const std::unique_ptr<HotelEvent> event =
-                 event_generator->decide_what_happens())
-  {
+  } else if (const std::unique_ptr<HotelEvent> event =
+                 event_generator->decide_what_happens()) {
     std::cout << "[Zdarzenie] Wystapilo zdarzenie hotelowe (szansa "
               << config.event_probability << "%).\n";
     (void)event;
@@ -123,7 +125,7 @@ void Simulation::tick() {
     try_fix_failure();
   }
 
-  check_checkout(hour, day);
+  // check_checkout(hour, day);
 
   std::cout << "[Czas] Minal 1 tick (" << config.minutesPerTick
             << " min). Obecny tick: " << current_tick << " (godz. " << hour
@@ -193,7 +195,8 @@ unsigned int Simulation::weekday() const noexcept {
   return weekday_index_from_sys_days(actual_date());
 }
 
-std::chrono::sys_days Simulation::get_actual_date(unsigned int days_elapsed) const noexcept {
+std::chrono::sys_days
+Simulation::get_actual_date(unsigned int days_elapsed) const noexcept {
   return std::chrono::sys_days{config.date_start} +
          std::chrono::days{static_cast<int>(days_elapsed)};
 }

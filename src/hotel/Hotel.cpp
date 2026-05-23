@@ -151,7 +151,7 @@ void Hotel::set_power(bool on) { power = on; }
 
 void Hotel::set_evacuation(bool on) { evacuation = on; }
 
-unsigned int Hotel::get_hotel_hour() const noexcept {
+/*unsigned int Hotel::get_hotel_hour() const noexcept {
   return hotel_hour;
 } /* błąd kompilacji */
 

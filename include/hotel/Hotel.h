@@ -37,7 +37,7 @@ public:
 
   [[nodiscard]] bool check_existance(unsigned int worker_uid) const;
   [[nodiscard]] bool get_actual_failure() const noexcept;
-  [[nodiscard]] unsigned int get_hotel_hour() const noexcept;
+  //[[nodiscard]] unsigned int get_hotel_hour() const noexcept;
   [[nodiscard]] unsigned int get_hotel_hour_end() const noexcept;
   bool set_actual_failure(bool value);
   void add_worker(std::unique_ptr<Staff> worker);

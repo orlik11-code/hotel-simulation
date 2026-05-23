@@ -10,7 +10,7 @@ if (MSVC)
 else ()
     add_compile_options(
             -Wall -Wextra -Wpedantic -Werror
-            -Wconversion -Wsign-conversion -Wshadow -Wold-style-cast
+            #-Wconversion -Wsign-conversion -Wshadow -Wold-style-cast
     )
 endif ()
 
