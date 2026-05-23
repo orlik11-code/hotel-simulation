@@ -29,6 +29,8 @@ public:
   bool get_food_included() const;
   bool get_check_out_request() const;
   unsigned int get_food_price() const;
+  bool get_is_cancelled() const;
+  void cancel(std::chrono::sys_days hotel_time);
   ~Reservation() = default;
 
 private:
@@ -41,6 +43,7 @@ private:
   bool is_paid;
   bool food_included;
   unsigned int food_price;
+  bool cancelled;
 };
 
 #endif // PROI_HOTEL_SYSTEM_MANAGEMENT_RESERVATION_H

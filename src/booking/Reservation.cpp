@@ -94,3 +94,17 @@ void Reservation::request_check_out(std::chrono::sys_days hotel_time) {
 std::chrono::sys_days Reservation::get_check_in() const { return check_in; }
 
 std::chrono::sys_days Reservation::get_check_out() const { return check_out; }
+
+void Reservation::cancel(std::chrono::sys_days hotel_time) {
+  if (hotel_time >= check_in) {
+    throw std::logic_error(
+        "Reservation cannot be cancelled after check in date.");
+  }
+  cancelled = true;
+  if (check_in - hotel_time > std::chrono::days(2)) {
+    return;
+  }
+  proceed_payment();
+}
+
+bool Reservation::get_is_cancelled() const { return cancelled; }
