@@ -27,8 +27,10 @@ has already paid, then exception will be thrown.
 Reservation::Reservation(const std::vector<Person> &p,
                          const Room *requested_room,
                          std::chrono::year_month_day c_in,
-                         std::chrono::year_month_day c_out)
-    : check_in(c_in), check_out(c_out), room(requested_room), people(p) {
+                         std::chrono::year_month_day c_out, bool food_included,
+                         unsigned int food_price)
+    : check_in(c_in), check_out(c_out), room(requested_room), people(p),
+      food_included(food_included), food_price(food_price) {
   if (room == nullptr) {
     throw std::invalid_argument(
         "Room must not be nullptr to make a reservation.");
@@ -69,3 +71,7 @@ const Room &Reservation::get_room() const { return *room; }
 const std::vector<Person> &Reservation::get_people() const { return people; }
 
 std::chrono::days Reservation::get_nights() const { return nights; }
+
+bool Reservation::get_food_included() const { return food_included; }
+
+unsigned int Reservation::get_food_price() const { return food_price; };

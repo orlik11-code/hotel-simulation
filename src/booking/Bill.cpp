@@ -9,7 +9,14 @@ Bill::Bill(const Reservation &reservation) : reservation(&reservation) {
   std::chrono::days nights = reservation.get_nights();
   auto nights_ui = static_cast<unsigned int>(nights.count());
 
-  this->total_bill = nights_ui * nightly_bill;
+  unsigned int people =
+      static_cast<unsigned int>(reservation.get_people().size());
+  unsigned int food_price = reservation.get_food_price();
+
+  auto bill_food =
+      static_cast<unsigned int>(reservation.get_food_included()) * food_price;
+
+  this->total_bill = nights_ui * nightly_bill + bill_food * people;
 }
 
 unsigned int Bill::get_total_bill() const { return this->total_bill; }

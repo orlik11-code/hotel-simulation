@@ -21,7 +21,8 @@ class Reservation {
 public:
   Reservation(const std::vector<Person> &p, const Room *r,
               std::chrono::year_month_day check_in,
-              std::chrono::year_month_day check_out);
+              std::chrono::year_month_day check_out, bool food_included,
+              unsigned int food_price);
   const std::vector<Person> &get_people() const;
   const Room &get_room() const;
   std::chrono::days get_nights() const;
@@ -31,6 +32,8 @@ public:
   bool check_has_begun(std::chrono::sys_days hotel_time) const;
   void proceed_payment();
   bool get_is_paid() const;
+  bool get_food_included() const;
+  unsigned int get_food_price() const;
   ~Reservation() = default;
 
 private:
@@ -40,6 +43,8 @@ private:
   const std::vector<Person> people;
   std::chrono::days nights;
   bool is_paid;
+  bool food_included;
+  unsigned int food_price;
 };
 
 #endif // PROI_HOTEL_SYSTEM_MANAGEMENT_RESERVATION_H
