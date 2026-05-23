@@ -90,3 +90,7 @@ void Reservation::request_check_out(std::chrono::sys_days hotel_time) {
       "Check out may be requested on the last day of stay. Today is " +
       std::to_string(detailed_error_info) + " days before that."));
 }
+
+std::chrono::sys_days Reservation::get_check_in() const { return check_in; }
+
+std::chrono::sys_days Reservation::get_check_out() const { return check_out; }
