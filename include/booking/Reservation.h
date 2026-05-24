@@ -31,6 +31,14 @@ public:
   unsigned int get_food_price() const;
   bool get_is_cancelled() const;
   void cancel(std::chrono::sys_days hotel_time);
+
+  /** Recepcja zakończyła meldunek (nie mylić z check_has_begun — kalendarz). */
+  [[nodiscard]] bool is_checked_in() const;
+  /** Recepcja zakończyła wymeldowanie i rozliczenie po stronie hotelu. */
+  [[nodiscard]] bool is_checkout_settled() const;
+  void mark_checked_in();
+  void mark_checkout_settled();
+
   ~Reservation() = default;
 
 private:
@@ -40,10 +48,12 @@ private:
   const Room *room;
   const std::vector<Guest> &people;
   std::chrono::days nights;
-  bool is_paid;
+  bool is_paid = false;
   bool food_included;
   unsigned int food_price;
-  bool cancelled;
+  bool cancelled = false;
+  bool checked_in = false;
+  bool checkout_settled = false;
 };
 
 #endif // PROI_HOTEL_SYSTEM_MANAGEMENT_RESERVATION_H

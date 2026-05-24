@@ -53,63 +53,138 @@ void Simulation::try_fix_failure() {
   }
 }
 
-// void Simulation::check_checkout(unsigned int hour, unsigned int day)
-// {
-//   (void)hour;
-//   (void)day;
-//   // TODO: odkomentować, gdy będą:
-//   //   - Hotel::get_reservations() zwracające kolekcję Reservation
-//   //   - Reservation::get_checkin() / get_checkout() zwracające
-//   std::chrono::sys_days
-//   //   - (opcjonalnie) Hotel::get_hotel_hour_end()
-//   // Recepcjoniści obsługują meldowanie/wymeldowanie w godzinach pracy
-//   hotelu.
-//   // Zadanie recepcjonisty (Task::make_check_in()) trwa losowo 1–10 minut.
-//   if (hour >= hotel.get_hotel_hour() && hour < /* hotel.get_hotel_hour_end()
-//   */ 16U)
-//   {
-//     for (const Reservation& reservation : hotel.get_reservations())
-//     {
-//       const bool is_checkin_today  = reservation.get_checkin()  ==
-//       actual_date(); const bool is_checkout_today =
-//       reservation.get_checkout() == actual_date(); if (!is_checkin_today &&
-//       !is_checkout_today && reservation.is_resoved())
-//       {
-//         continue;
-//       }
-//       if (is_checkin_today)
-//       {
-//       const Task reception_task = Task::make_check_in();
+void Simulation::apply_guest_satisfaction_penalty(Reservation *reservation,
+                                                  int penalty_points) {
+  (void)reservation;
+  (void)penalty_points;
+  // TODO zadowolenie: reservation->penalize_guests(penalty_points) albo pętla
+  // po get_people() → Guest::reduce_satisfaction (VIP/Business/Family).
+  // Wymaga poprawnej polimorfii gości — patrz docs/KONRAD_RESERVATION_KROKI.md krok 4.
+}
 
-//       const bool assigned = hotel.assign_first_available(
-//           StaffRole::Receptionist, reception_task, hour, day);
-//       if (!assigned)
-//       {
-//   //       // Brak wolnego recepcjonisty — kara/awaria.
-//   //       // Uwaga: time_with_fail jest współdzielone z try_fix_failure();
-//   //       // docelowo lepiej trzymać osobne pole (np.
-//   time_with_no_receptionist).
-//         time_with_fail += config.minutesPerTick / 10U;
-//         if (time_with_fail >= kFailureDestroyAfterMinutes)
-//         {
-//           throw std::runtime_error("Hotel has been destroyed");
-//         }
-//       }
-//       else {
-//       reservation.set_resolved();
-//       }
-//       if (is_checkout_today)
-//       {
-//        hotel.add_balance(reservation.get_total_bill());
-//       }
-//     }
-//   }
+bool Simulation::has_pending_reception(Reservation *reservation) const {
+  if (reservation == nullptr) {
+    return false;
+  }
+  for (const PendingReceptionTask &pending : pending_reception) {
+    if (pending.reservation == reservation) {
+      return true;
+    }
+  }
+  return false;
+}
 
-// }
+void Simulation::process_reception_completions() {
+  auto it = pending_reception.begin();
+  while (it != pending_reception.end()) {
+    if (it->reservation == nullptr ||
+        it->reservation->get_is_cancelled()) {
+      it = pending_reception.erase(it);
+      continue;
+    }
+
+    Staff *worker = hotel.find_by_uid(it->worker_uid);
+    if (worker == nullptr) {
+      it = pending_reception.erase(it);
+      continue;
+    }
+
+    if (worker->get_is_busy()) {
+      // TODO zadowolenie: gość czeka na zakończenie tasku recepcji — opcjonalnie
+      // apply_guest_satisfaction_penalty(it->reservation, 1) co tick.
+      ++it;
+      continue;
+    }
+
+    if (worker->get_current_task().type != TaskType::CheckIn) {
+      ++it;
+      continue;
+    }
+
+    if (it->is_checkout) {
+      hotel.complete_checkout(it->reservation);
+      it->reservation->mark_checkout_settled();
+    } else {
+      it->reservation->mark_checked_in();
+    }
+
+    it = pending_reception.erase(it);
+  }
+}
+
+void Simulation::check_checkout(unsigned int hour, unsigned int day) {
+  if (hour < hotel.get_hotel_hour_start() ||
+      hour >= hotel.get_hotel_hour_end()) {
+    return;
+  }
+
+  const std::chrono::sys_days today = actual_date();
+  const Task reception_task = Task::make_check_in();
+
+  for (Reservation *reservation : hotel.get_reservations()) {
+    if (reservation == nullptr || reservation->get_is_cancelled()) {
+      continue;
+    }
+
+    const bool checkin_today = (reservation->get_check_in() == today);
+    const bool checkout_today = (reservation->get_check_out() == today);
+
+    if (checkin_today && !reservation->is_checked_in() &&
+        !has_pending_reception(reservation)) {
+      Staff *receptionist = hotel.assign_first_available_staff(
+          StaffRole::Receptionist, reception_task, hour, day);
+      if (receptionist != nullptr) {
+        pending_reception.push_back(
+            PendingReceptionTask{reservation, false, receptionist->get_uid()});
+      } else {
+        // TODO zadowolenie: brak wolnej recepcji w dniu meldunku — kara za czekanie.
+        // apply_guest_satisfaction_penalty(reservation, 1);
+      }
+      continue;
+    }
+
+    if (!reservation->check_has_begun(today)) {
+      continue;
+    }
+
+    if ((checkout_today || reservation->get_check_out_request()) &&
+        !reservation->is_checkout_settled() &&
+        !has_pending_reception(reservation)) {
+      Staff *receptionist = hotel.assign_first_available_staff(
+          StaffRole::Receptionist, reception_task, hour, day);
+      if (receptionist != nullptr) {
+        pending_reception.push_back(
+            PendingReceptionTask{reservation, true, receptionist->get_uid()});
+      } else {
+        // TODO zadowolenie: brak recepcji w dniu wymeldowania — kara za czekanie.
+        // apply_guest_satisfaction_penalty(reservation, 1);
+      }
+      continue;
+    }
+  }
+
+  // TODO zadowolenie (opcjonalnie): rezerwacje w pending_reception już dłużej niż N
+  // ticków bez completion — dodatkowa kara; trzymać licznik ticków w PendingReceptionTask.
+}
+
+void Simulation::schedule_cancellation(Reservation *reservation) {
+  if (reservation == nullptr) {
+    return;
+  }
+  pending_cancellations.push_back(reservation);
+}
+
+void Simulation::process_cancellations() {
+  for (Reservation *reservation : pending_cancellations) {
+    hotel.cancel_reservation(reservation, actual_date());
+  }
+  pending_cancellations.clear();
+}
 
 void Simulation::tick() {
   current_tick++;
   hotel.tick(config.minutesPerTick);
+  process_reception_completions();
 
   const unsigned int hour = hour_of_day();
   const unsigned int day = weekday();
@@ -125,7 +200,8 @@ void Simulation::tick() {
     try_fix_failure();
   }
 
-  // check_checkout(hour, day);
+  process_cancellations();
+  check_checkout(hour, day);
 
   std::cout << "[Czas] Minal 1 tick (" << config.minutesPerTick
             << " min). Obecny tick: " << current_tick << " (godz. " << hour

@@ -69,6 +69,7 @@ public:
     [[nodiscard]] unsigned int get_day(Weekday day) const;
 
     [[nodiscard]] bool get_is_busy() const noexcept;
+    [[nodiscard]] const Task& get_current_task() const noexcept;
 
     virtual unsigned int receive_bonus() const noexcept = 0;
 };

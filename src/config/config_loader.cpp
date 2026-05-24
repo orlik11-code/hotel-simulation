@@ -99,3 +99,4 @@ void Config_loader::print_usage(const char *program_name) {
             << "  event_probability=5\n"
             << "  date_start=2026-05-18\n";
 }
+

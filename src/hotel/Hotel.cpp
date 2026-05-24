@@ -1,4 +1,6 @@
 #include "hotel/Hotel.h"
+
+#include "booking/Bill.h"
 #include "staff.hpp"
 
 #include <algorithm>
@@ -89,9 +91,9 @@ bool Hotel::assign_task(unsigned int uid, const Task &task,
   return true;
 }
 
-bool Hotel::assign_first_available(StaffRole role, const Task &task,
-                                   unsigned int hour_of_day,
-                                   unsigned int weekday_index) {
+Staff *Hotel::assign_first_available_staff(StaffRole role, const Task &task,
+                                           unsigned int hour_of_day,
+                                           unsigned int weekday_index) {
   const Weekday wd = weekday_from_index(weekday_index);
   auto available_view =
       workers | std::views::filter([&](const std::unique_ptr<Staff> &worker) {
@@ -101,7 +103,7 @@ bool Hotel::assign_first_available(StaffRole role, const Task &task,
       });
 
   if (std::ranges::empty(available_view)) {
-    return false;
+    return nullptr;
   }
 
   auto least_tired_it = std::ranges::min_element(
@@ -109,9 +111,16 @@ bool Hotel::assign_first_available(StaffRole role, const Task &task,
         return worker->get_fatigue();
       });
 
-  (*least_tired_it)->do_work(task, wd, hour_of_day);
+  Staff *worker = least_tired_it->get();
+  worker->do_work(task, wd, hour_of_day);
+  return worker;
+}
 
-  return true;
+bool Hotel::assign_first_available(StaffRole role, const Task &task,
+                                   unsigned int hour_of_day,
+                                   unsigned int weekday_index) {
+  return assign_first_available_staff(role, task, hour_of_day,
+                                      weekday_index) != nullptr;
 }
 
 void Hotel::tick(unsigned int elapsed_minutes) {
@@ -151,9 +160,9 @@ void Hotel::set_power(bool on) { power = on; }
 
 void Hotel::set_evacuation(bool on) { evacuation = on; }
 
-/*unsigned int Hotel::get_hotel_hour() const noexcept {
-  return hotel_hour;
-} /* błąd kompilacji */
+unsigned int Hotel::get_hotel_hour_start() const noexcept {
+  return hotel_hour_start;
+}
 
 unsigned int Hotel::get_hotel_hour_end() const noexcept {
   return hotel_hour_end;
@@ -166,6 +175,39 @@ void Hotel::add_reservation(std::unique_ptr<Reservation> reservation_up) {
 int Hotel::get_balance() const { return balance; }
 
 void Hotel::change_balance(int change) { balance += change; }
+
+void Hotel::cancel_reservation(Reservation *reservation,
+                               const std::chrono::sys_days hotel_time) {
+  if (reservation == nullptr || reservation->get_is_cancelled()) {
+    return;
+  }
+
+  const bool before_stay = hotel_time < reservation->get_check_in();
+  const bool during_stay = reservation->check_has_begun(hotel_time) &&
+                           hotel_time < reservation->get_check_out();
+  const std::chrono::days days_until_checkin =
+      reservation->get_check_in() - hotel_time;
+  const bool free_cancel =
+      before_stay && days_until_checkin > std::chrono::days{2};
+
+  reservation->cancel(hotel_time);
+
+  if (!free_cancel && (before_stay || during_stay)) {
+    const Bill bill(*reservation);
+    change_balance(static_cast<int>(bill.get_total_bill()));
+  }
+}
+
+void Hotel::complete_checkout(Reservation *reservation) {
+  if (reservation == nullptr || reservation->get_is_cancelled()) {
+    return;
+  }
+  const Bill bill(*reservation);
+  change_balance(static_cast<int>(bill.get_total_bill()));
+  if (!reservation->get_is_paid()) {
+    reservation->proceed_payment();
+  }
+}
 
 std::vector<Reservation *> Hotel::get_reservations() const {
   std::vector<Reservation *> res;

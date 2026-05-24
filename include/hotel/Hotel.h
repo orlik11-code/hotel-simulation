@@ -37,7 +37,7 @@ public:
 
   [[nodiscard]] bool check_existance(unsigned int worker_uid) const;
   [[nodiscard]] bool get_actual_failure() const noexcept;
-  //[[nodiscard]] unsigned int get_hotel_hour() const noexcept;
+  [[nodiscard]] unsigned int get_hotel_hour_start() const noexcept;
   [[nodiscard]] unsigned int get_hotel_hour_end() const noexcept;
   bool set_actual_failure(bool value);
   void add_worker(std::unique_ptr<Staff> worker);
@@ -50,6 +50,10 @@ public:
   [[nodiscard]] bool assign_first_available(StaffRole role, const Task &task,
                                             unsigned int hour_of_day,
                                             unsigned int weekday_index);
+  /** Zwraca pracownika, który dostał zadanie, albo nullptr. */
+  [[nodiscard]] Staff *assign_first_available_staff(
+      StaffRole role, const Task &task, unsigned int hour_of_day,
+      unsigned int weekday_index);
 
   void addRoom(std::unique_ptr<Room> room);
   void removeRoom(unsigned int roomNumber);
@@ -62,6 +66,14 @@ public:
 
   int get_balance() const;
   void change_balance(int change);
+
+  /** Anulowanie: przy <=2 dniach przed check-in lub w trakcie pobytu
+   *  cała kwota z Bill trafia do salda (bez recepcji). */
+  void cancel_reservation(Reservation *reservation,
+                          std::chrono::sys_days hotel_time);
+
+  /** Cały Bill rezerwacji trafia do salda (bez recepcji). */
+  void complete_checkout(Reservation *reservation);
 
   std::vector<Reservation *> get_reservations() const;
 };

@@ -230,6 +230,11 @@ bool Staff::get_is_busy() const noexcept
     return is_busy;
 }
 
+const Task& Staff::get_current_task() const noexcept
+{
+    return current_task;
+}
+
 void Staff::process_tick(unsigned int elapsed_minutes)
 {
     if (is_busy) {

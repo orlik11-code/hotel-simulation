@@ -5,6 +5,7 @@
 
 #include <chrono>
 #include <memory>
+#include <vector>
 
 struct SimConfig {
   unsigned int ticsPerDay = 24;
@@ -24,12 +25,24 @@ private:
   bool is_running;
   unsigned int time_with_fail = 0;
   std::unique_ptr<EventGenerator> event_generator;
+  std::vector<Reservation *> pending_cancellations;
+
+  struct PendingReceptionTask {
+    Reservation *reservation = nullptr;
+    bool is_checkout = false;
+    unsigned int worker_uid = 0U;
+  };
+  std::vector<PendingReceptionTask> pending_reception;
 
   void try_fix_failure();
-  /** Recepcjoniści obsługują meldowania/wymeldowania w godzinach pracy hotelu.
-   *  Pełne ciało jest na razie zakomentowane — czeka na Hotel::get_reservations()
-   *  oraz Reservation::get_checkin()/get_checkout(). */
+  void process_reception_completions();
   void check_checkout(unsigned int hour, unsigned int day);
+  void process_cancellations();
+  [[nodiscard]] bool has_pending_reception(Reservation *reservation) const;
+  /** Zadowolenie gości: reduce_satisfaction na get_people() — po API od Konrada
+   *  (np. Reservation::penalize_guests). Wołane z miejsc oznaczonych w .cpp. */
+  void apply_guest_satisfaction_penalty(Reservation *reservation,
+                                        int penalty_points);
   [[nodiscard]] std::chrono::sys_days get_actual_date(unsigned int days_elapsed) const noexcept;
 
 public:
@@ -41,6 +54,9 @@ public:
   void tick();
 
   Hotel &get_hotel();
+
+  /** Kolejkuje anulowanie; kasa trafia do budżetu w następnym process_cancellations(). */
+  void schedule_cancellation(Reservation *reservation);
 
   [[nodiscard]] unsigned int get_current_tick() const noexcept;
   [[nodiscard]] unsigned int days_elapsed() const noexcept;
