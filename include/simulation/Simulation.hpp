@@ -5,6 +5,7 @@
 
 #include <chrono>
 #include <memory>
+#include <optional>
 #include <vector>
 
 struct SimConfig {
@@ -27,6 +28,9 @@ private:
   std::unique_ptr<EventGenerator> event_generator;
   std::vector<Reservation *> pending_cancellations;
 
+  /** Data ostatniego porannego batcha brudnych pokoi (operational day start). */
+  std::optional<std::chrono::sys_days> last_daily_dirty_date;
+
   struct PendingReceptionTask {
     Reservation *reservation = nullptr;
     bool is_checkout = false;
@@ -39,11 +43,14 @@ private:
   void check_checkout(unsigned int hour, unsigned int day);
   void process_cancellations();
   [[nodiscard]] bool has_pending_reception(Reservation *reservation) const;
-  /** Zadowolenie gości: reduce_satisfaction na get_people() — po API od Konrada
-   *  (np. Reservation::penalize_guests). Wołane z miejsc oznaczonych w .cpp. */
   void apply_guest_satisfaction_penalty(Reservation *reservation,
                                         int penalty_points);
-  [[nodiscard]] std::chrono::sys_days get_actual_date(unsigned int days_elapsed) const noexcept;
+  [[nodiscard]] std::chrono::sys_days
+  get_actual_date(unsigned int days_elapsed) const noexcept;
+
+  [[nodiscard]] bool should_run_daily_dirty(unsigned int hour_of_day,
+                                          std::chrono::sys_days today) const;
+  void process_daily_dirty_rooms(std::chrono::sys_days today);
 
 public:
   Simulation(const SimConfig &sim_config);
@@ -55,7 +62,6 @@ public:
 
   Hotel &get_hotel();
 
-  /** Kolejkuje anulowanie; kasa trafia do budżetu w następnym process_cancellations(). */
   void schedule_cancellation(Reservation *reservation);
 
   [[nodiscard]] unsigned int get_current_tick() const noexcept;

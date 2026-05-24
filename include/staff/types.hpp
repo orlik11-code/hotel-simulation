@@ -1,7 +1,5 @@
 #pragma once
 
-#include <string>
-
 enum class Weekday {
     monday,
     tuesday,
@@ -46,7 +44,7 @@ struct Task {
 
     Task() = default;
 
-    /** Domyślnie 1 h pracy (60 min), bez losowości — wygodne w testach `Task{Typ}`. */
+
     explicit Task(TaskType t)
         : type(t),
           duration_minutes(60U)
@@ -63,10 +61,12 @@ struct Task {
     {
     }
 
-    /** Bazowe minuty + losowy dodatek — implementacja w src/staff/Task.cpp. */
+    // base minutes + additional
     Task(TaskType t, unsigned int base_minutes);
 
-    /** Fabryka zadania meldowania/wymeldowania dla recepcjonisty.
-     *  Czas trwania losowy w przedziale 1–10 minut włącznie. */
+    // 1 - 10 minutes
     [[nodiscard]] static Task make_check_in();
+
+    /** Fabryka sprzątania pokoju — losowy czas 5–25 minut włącznie. */
+    [[nodiscard]] static Task make_clean_room();
 };

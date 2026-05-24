@@ -11,6 +11,8 @@
 namespace {
 
 constexpr unsigned int kFailureDestroyAfterMinutes = 40U;
+constexpr unsigned int kCheckOutHour = 8U;
+constexpr unsigned int kCheckInHour = 11U;
 
 /** Maps std::chrono weekday to simulation index (0 = Monday, 6 = Sunday). */
 [[nodiscard]] unsigned int
@@ -60,6 +62,44 @@ void Simulation::apply_guest_satisfaction_penalty(Reservation *reservation,
   // TODO zadowolenie: reservation->penalize_guests(penalty_points) albo pętla
   // po get_people() → Guest::reduce_satisfaction (VIP/Business/Family).
   // Wymaga poprawnej polimorfii gości — patrz docs/KONRAD_RESERVATION_KROKI.md krok 4.
+}
+
+bool Simulation::should_run_daily_dirty(
+    unsigned int hour_of_day, std::chrono::sys_days today) const {
+  if (hour_of_day < hotel.get_hotel_hour_start()) {
+    return false;
+  }
+  if (last_daily_dirty_date.has_value() && *last_daily_dirty_date == today) {
+    return false;
+  }
+  return true;
+}
+
+void Simulation::process_daily_dirty_rooms(std::chrono::sys_days today) {
+  unsigned int marked = 0U;
+
+  for (Reservation *reservation : hotel.get_reservations()) {
+    if (reservation == nullptr || reservation->get_is_cancelled()) {
+      continue;
+    }
+
+    const bool active_stay =
+        reservation->check_has_begun(today) &&
+        !reservation->check_resolved(today);
+    const bool checkout_today = reservation->get_check_out() == today;
+
+    if (!active_stay && !checkout_today) {
+      continue;
+    }
+
+    if (hotel.mark_room_dirty(reservation->get_room().get_number())) {
+      ++marked;
+    }
+  }
+
+  last_daily_dirty_date = today;
+  std::cout << "[Sprzatanie] Dzienny reset o " << hotel.get_hotel_hour_start()
+            << ":00 — oznaczono " << marked << " pokoi jako brudne.\n";
 }
 
 bool Simulation::has_pending_reception(Reservation *reservation) const {
@@ -113,33 +153,36 @@ void Simulation::process_reception_completions() {
 }
 
 void Simulation::check_checkout(unsigned int hour, unsigned int day) {
-  if (hour < hotel.get_hotel_hour_start() ||
-      hour >= hotel.get_hotel_hour_end()) {
+  if (hotel.get_actual_failure()) {
     return;
   }
 
   const std::chrono::sys_days today = actual_date();
-  const Task reception_task = Task::make_check_in();
 
   for (Reservation *reservation : hotel.get_reservations()) {
     if (reservation == nullptr || reservation->get_is_cancelled()) {
       continue;
     }
 
-    const bool checkin_today = (reservation->get_check_in() == today);
-    const bool checkout_today = (reservation->get_check_out() == today);
+    const bool checkin_today = reservation->get_check_in() == today;
+    const bool checkout_today = reservation->get_check_out() == today;
 
-    if (checkin_today && !reservation->is_checked_in() &&
+    if (hour == kCheckInHour && checkin_today && !reservation->is_checked_in() &&
         !has_pending_reception(reservation)) {
+      const Task reception_task = Task::make_check_in();
       Staff *receptionist = hotel.assign_first_available_staff(
           StaffRole::Receptionist, reception_task, hour, day);
       if (receptionist != nullptr) {
         pending_reception.push_back(
             PendingReceptionTask{reservation, false, receptionist->get_uid()});
       } else {
-        // TODO zadowolenie: brak wolnej recepcji w dniu meldunku — kara za czekanie.
+        // TODO zadowolenie: brak wolnej recepcji w dniu meldunku.
         // apply_guest_satisfaction_penalty(reservation, 1);
       }
+      continue;
+    }
+
+    if (hour != kCheckOutHour) {
       continue;
     }
 
@@ -150,16 +193,16 @@ void Simulation::check_checkout(unsigned int hour, unsigned int day) {
     if ((checkout_today || reservation->get_check_out_request()) &&
         !reservation->is_checkout_settled() &&
         !has_pending_reception(reservation)) {
+      const Task reception_task = Task::make_check_in();
       Staff *receptionist = hotel.assign_first_available_staff(
           StaffRole::Receptionist, reception_task, hour, day);
       if (receptionist != nullptr) {
         pending_reception.push_back(
             PendingReceptionTask{reservation, true, receptionist->get_uid()});
       } else {
-        // TODO zadowolenie: brak recepcji w dniu wymeldowania — kara za czekanie.
+        // TODO zadowolenie: brak recepcji przy wymeldowaniu.
         // apply_guest_satisfaction_penalty(reservation, 1);
       }
-      continue;
     }
   }
 
@@ -201,6 +244,12 @@ void Simulation::tick() {
   }
 
   process_cancellations();
+
+  const std::chrono::sys_days today = actual_date();
+  if (should_run_daily_dirty(hour, today)) {
+    process_daily_dirty_rooms(today);
+  }
+
   check_checkout(hour, day);
 
   std::cout << "[Czas] Minal 1 tick (" << config.minutesPerTick

@@ -26,10 +26,11 @@ private:
   bool power;
   bool evacuation;
   bool actual_failure = false;
-  // dodałem, aby łatwiej było ogarnąć wymeldowania jako doba hotelowa domyslnie
-  // 8
+  /** Start doby operacyjnej (np. poranny batch sprzątania). */
   unsigned int hotel_hour_start = 8;
+  /** Koniec okna dispatch pokojówek (recepcja — tylko grafik staff). */
   unsigned int hotel_hour_end = 16;
+
   int balance = 0;
 
 public:
@@ -67,15 +68,17 @@ public:
   int get_balance() const;
   void change_balance(int change);
 
-  /** Anulowanie: przy <=2 dniach przed check-in lub w trakcie pobytu
-   *  cała kwota z Bill trafia do salda (bez recepcji). */
+  // anulowanie przy 2 mniej dniach płacą dziadygi :D
   void cancel_reservation(Reservation *reservation,
                           std::chrono::sys_days hotel_time);
 
-  /** Cały Bill rezerwacji trafia do salda (bez recepcji). */
+  // cały bill trafia do salda hoteli
   void complete_checkout(Reservation *reservation);
 
   std::vector<Reservation *> get_reservations() const;
+
+  // set flag na brudny pokoj (konkretny)
+  bool mark_room_dirty(unsigned int room_number);
 };
 
 #endif

@@ -1,6 +1,7 @@
 #include "hotel/Hotel.h"
 
 #include "booking/Bill.h"
+#include "rooms/Room.h"
 #include "staff.hpp"
 
 #include <algorithm>
@@ -217,4 +218,18 @@ std::vector<Reservation *> Hotel::get_reservations() const {
 
   std::ranges::copy(view, std::back_inserter(res));
   return res;
+}
+
+bool Hotel::mark_room_dirty(unsigned int room_number) {
+  const auto found = std::ranges::find_if(
+      rooms, [room_number](const std::unique_ptr<Room> &room) {
+        return room && room->get_number() == room_number;
+      });
+
+  if (found == rooms.end()) {
+    return false;
+  }
+
+  (*found)->make_dirty();
+  return true;
 }
