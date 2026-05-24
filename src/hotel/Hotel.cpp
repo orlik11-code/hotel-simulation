@@ -1,8 +1,10 @@
 #include "hotel/Hotel.h"
 
 #include "booking/Bill.h"
+#include "booking/Reservation.h"
 #include "rooms/Room.h"
 #include "staff.hpp"
+#include "staff/types.hpp"
 
 #include <algorithm>
 #include <functional>
@@ -232,4 +234,132 @@ bool Hotel::mark_room_dirty(unsigned int room_number) {
 
   (*found)->make_dirty();
   return true;
+}
+
+
+bool Hotel::has_pending_housekeeping(const Room *room) const {
+  if (room == nullptr) {
+    return false;
+  }
+  for (const PendingHousekeeping &pending : pending_housekeeping) {
+    if (pending.room == room || pending.room_number == room->get_number()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+HousekeepingStats Hotel::collect_housekeeping_stats(
+    unsigned int hour_of_day, unsigned int weekday_index) const {
+  HousekeepingStats stats;
+  const Weekday wd = weekday_from_index(weekday_index);
+  const Task clean_probe = Task::make_clean_room();
+
+  for (const std::unique_ptr<Room> &room : rooms) {
+    if (room == nullptr || !room->is_to_clean()) {
+      continue;
+    }
+    ++stats.dirty_rooms;
+    if (has_pending_housekeeping(room.get())) {
+      ++stats.already_pending;
+    } else {
+      ++stats.need_assignment;
+    }
+  }
+
+  for (const std::unique_ptr<Staff> &worker : workers) {
+    if (worker == nullptr || worker->role() != StaffRole::Housekeeper) {
+      continue;
+    }
+    if (!worker->can_handle(clean_probe, wd, hour_of_day)) {
+      continue;
+    }
+    ++stats.housekeepers_on_shift;
+    if (!worker->get_is_busy() && !worker->is_tired()) {
+      ++stats.housekeepers_free;
+    }
+  }
+
+  return stats;
+}
+
+void Hotel::apply_completed_housekeeping() {
+  auto it = pending_housekeeping.begin();
+  while (it != pending_housekeeping.end()) {
+    if (it->room == nullptr) {
+      it = pending_housekeeping.erase(it);
+      continue;
+    }
+
+    Staff *worker = find_by_uid(it->worker_uid);
+    if (worker == nullptr) {
+      it = pending_housekeeping.erase(it);
+      continue;
+    }
+
+    if (worker->get_is_busy()) {
+      ++it;
+      continue;
+    }
+
+    if (worker->get_current_task().type != TaskType::CleanRoom) {
+      ++it;
+      continue;
+    }
+
+    it->room->clean();
+    it = pending_housekeeping.erase(it);
+  }
+}
+
+void Hotel::dispatch_housekeeping(unsigned int hour_of_day,
+                                  unsigned int weekday_index) {
+  if (get_actual_failure()) {
+    return;
+  }
+  if (hour_of_day < get_hotel_hour_start() ||
+      hour_of_day >= get_hotel_hour_end()) {
+    return;
+  }
+
+  const HousekeepingStats stats =
+      collect_housekeeping_stats(hour_of_day, weekday_index);
+  const unsigned int to_assign =
+      std::min(stats.need_assignment, stats.housekeepers_free);
+  unsigned int assigned = 0U;
+
+  for (unsigned int i = 0U; i < to_assign; ++i) {
+    Room *target = nullptr;
+    for (const std::unique_ptr<Room> &room_up : rooms) {
+      if (room_up && room_up->is_to_clean() &&
+          !has_pending_housekeeping(room_up.get())) {
+        target = room_up.get();
+        break;
+      }
+    }
+    if (target == nullptr) {
+      break;
+    }
+
+    const Task task = Task::make_clean_room();
+    Staff *keeper = assign_first_available_staff(
+        StaffRole::Housekeeper, task, hour_of_day, weekday_index);
+    if (keeper == nullptr) {
+      break;
+    }
+
+    pending_housekeeping.push_back(
+        {target, keeper->get_uid(), target->get_number()});
+    ++assigned;
+    std::cout << "[Sprzatanie] Pokojowka " << keeper->get_uid()
+              << " -> pokoj nr " << target->get_number() << " (czas "
+              << task.duration_minutes << " min)\n";
+  }
+
+  if (stats.dirty_rooms > 0U || assigned > 0U) {
+    std::cout << "[Sprzatanie] brudne: " << stats.dirty_rooms
+              << ", w kolejce: " << stats.need_assignment
+              << ", pokojowki wolne: " << stats.housekeepers_free
+              << ", przypisano: " << assigned << "\n";
+  }
 }

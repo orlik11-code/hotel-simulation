@@ -252,6 +252,11 @@ void Simulation::tick() {
 
   check_checkout(hour, day);
 
+  hotel.apply_completed_housekeeping();
+  if (!hotel.get_actual_failure()) {
+    hotel.dispatch_housekeeping(hour, day);
+  }
+
   std::cout << "[Czas] Minal 1 tick (" << config.minutesPerTick
             << " min). Obecny tick: " << current_tick << " (godz. " << hour
             << ", dzien_tygodnia " << day << ")\n";

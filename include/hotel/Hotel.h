@@ -9,6 +9,21 @@
 #include <memory>
 #include <vector>
 
+
+struct PendingHousekeeping {
+  Room *room = nullptr;
+  unsigned int worker_uid = 0U;
+  unsigned int room_number = 0U;
+};
+
+struct HousekeepingStats {
+  unsigned int dirty_rooms = 0;
+  unsigned int already_pending = 0;
+  unsigned int need_assignment = 0;
+  unsigned int housekeepers_on_shift = 0;
+  unsigned int housekeepers_free = 0;
+};
+
 class Hotel {
 private:
   std::vector<std::unique_ptr<Staff>> workers;
@@ -32,6 +47,10 @@ private:
   unsigned int hotel_hour_end = 16;
 
   int balance = 0;
+
+  std::vector<PendingHousekeeping> pending_housekeeping;
+
+  [[nodiscard]] bool has_pending_housekeeping(const Room *room) const;
 
 public:
   Hotel();
@@ -79,6 +98,14 @@ public:
 
   // set flag na brudny pokoj (konkretny)
   bool mark_room_dirty(unsigned int room_number);
+
+  [[nodiscard]] HousekeepingStats
+  collect_housekeeping_stats(unsigned int hour_of_day,
+                             unsigned int weekday_index) const;
+
+  /** Kończy sprzątanie: gdy pokojówka skończyła CleanRoom → room.clean(). */
+  void apply_completed_housekeeping();
+  void dispatch_housekeeping(unsigned int hour_of_day, unsigned int weekday_index);
 };
 
 #endif

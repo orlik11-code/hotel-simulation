@@ -63,6 +63,7 @@ public:
   Hotel &get_hotel();
 
   void schedule_cancellation(Reservation *reservation);
+  void apply_completed_housekeeping();
 
   [[nodiscard]] unsigned int get_current_tick() const noexcept;
   [[nodiscard]] unsigned int days_elapsed() const noexcept;
