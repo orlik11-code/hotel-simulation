@@ -24,7 +24,7 @@ std::chrono::days
 has already paid, then exception will be thrown.
 
 */
-Reservation::Reservation(const std::vector<Guest> &p,
+Reservation::Reservation(const std::vector<std::unique_ptr<Guest>> &p,
                          const Room *requested_room,
                          std::chrono::year_month_day c_in,
                          std::chrono::year_month_day c_out, bool food_included,
@@ -68,7 +68,9 @@ bool Reservation::get_is_paid() const { return this->is_paid; }
 
 const Room &Reservation::get_room() const { return *room; }
 
-const std::vector<Guest> &Reservation::get_people() const { return people; }
+const std::vector<std::unique_ptr<Guest>> &Reservation::get_people() const {
+  return people;
+}
 
 std::chrono::days Reservation::get_nights() const { return nights; }
 

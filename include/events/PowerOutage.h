@@ -10,8 +10,12 @@
 
 class PowerOutage : public HotelEvent {
 public:
-  PowerOutage(Hotel &h);
+  explicit PowerOutage(Hotel &h);
   ~PowerOutage() override;
+
+  void apply() override;
+  void clear() override;
+  [[nodiscard]] const char *description() const override;
 
   PowerOutage(const PowerOutage &other) = delete;
   PowerOutage &operator=(const PowerOutage &other) = delete;

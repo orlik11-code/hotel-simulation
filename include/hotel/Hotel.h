@@ -2,6 +2,7 @@
 #define HOTEL_H
 
 #include "booking/Reservation.h"
+#include "guests/Guest.hpp"
 #include "rooms/Room.h"
 #include "staff.hpp"
 #include <algorithm>
@@ -16,6 +17,11 @@ struct PendingHousekeeping {
   unsigned int room_number = 0U;
 };
 
+struct PendingMaintenance
+{
+  unsigned int worker_uid = 0U;
+};
+
 struct HousekeepingStats {
   unsigned int dirty_rooms = 0;
   unsigned int already_pending = 0;
@@ -27,9 +33,11 @@ struct HousekeepingStats {
 class Hotel {
 private:
   std::vector<std::unique_ptr<Staff>> workers;
+  /** Goście z configu — jeden wektor na rezerwację (unique_ptr: Guest jest abstrakcyjny). */
+  std::vector<std::vector<std::unique_ptr<Guest>>> guest_lists;
   std::vector<std::unique_ptr<Room>> rooms;
-  // a co z rezerwacjami ? podepnij prosze rezerwacje tutaj
   std::vector<std::unique_ptr<Reservation>> reservations;
+
   // zrób kolekcje z rezerwacjami abym mógł podpiąć
   // std::vector<Reservation> reservations
 
@@ -49,6 +57,8 @@ private:
   int balance = 0;
 
   std::vector<PendingHousekeeping> pending_housekeeping;
+  std::vector<PendingMaintenance> pending_maintenance;
+
 
   [[nodiscard]] bool has_pending_housekeeping(const Room *room) const;
 
@@ -81,6 +91,8 @@ public:
 
   void set_power(bool power);
   void set_evacuation(bool evacuation);
+  [[nodiscard]] bool get_power() const noexcept;
+  [[nodiscard]] bool get_evacuation() const noexcept;
 
   void add_reservation(std::unique_ptr<Reservation> reservation_up);
 
@@ -105,7 +117,17 @@ public:
 
   /** Kończy sprzątanie: gdy pokojówka skończyła CleanRoom → room.clean(). */
   void apply_completed_housekeeping();
-  void dispatch_housekeeping(unsigned int hour_of_day, unsigned int weekday_index);
+  [[nodiscard]] unsigned int
+  dispatch_housekeeping(unsigned int hour_of_day, unsigned int weekday_index);
+
+  [[nodiscard]] bool has_pending_maintenance() const;
+  /** Kończy naprawę: gdy konserwator skończył FixFailure → actual_failure = false. */
+  void apply_completed_maintenance();
+  /** Przypisuje jednego konserwatora, jeśli awaria i brak pending. */
+  [[nodiscard]] bool try_assign_maintenance(unsigned int hour_of_day,
+                                            unsigned int weekday_index);
+
+  std::vector<std::unique_ptr<Guest>> &emplace_guest_list();
 };
 
 #endif

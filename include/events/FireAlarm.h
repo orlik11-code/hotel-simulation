@@ -10,8 +10,12 @@
 
 class FireAlarm : public HotelEvent {
 public:
-  FireAlarm(Hotel &hotel);
+  explicit FireAlarm(Hotel &hotel);
   ~FireAlarm() override;
+
+  void apply() override;
+  void clear() override;
+  [[nodiscard]] const char *description() const override;
 
   FireAlarm(const FireAlarm &fire_alarm) = delete;
   FireAlarm &operator=(const FireAlarm &fire_alarm) = delete;

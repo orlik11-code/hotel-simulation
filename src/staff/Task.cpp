@@ -24,6 +24,9 @@ constexpr unsigned int kReceptionistTaskMaxMinutes = 10U;
 constexpr unsigned int kHousekeeperTaskMinMinutes = 5U;
 constexpr unsigned int kHousekeeperTaskMaxMinutes = 25U;
 
+constexpr unsigned int kMaintanceWorkerMinMinutes = 5U;
+constexpr unsigned int kMaintanceWorkerMaxMinutes = 30U;
+
 constexpr unsigned int kRandomDeltaMaxMinutes = 20U;
 
 } // namespace
@@ -57,5 +60,15 @@ Task Task::make_clean_room()
     task.type = TaskType::CleanRoom;
     task.duration_minutes =
         random_minutes(kHousekeeperTaskMinMinutes, kHousekeeperTaskMaxMinutes);
+    return task;
+}
+
+
+Task Task::make_fix_failure()
+{
+    Task task;
+    task.type = TaskType::FixFailure;
+    task.duration_minutes =
+        random_minutes(kMaintanceWorkerMinMinutes, kMaintanceWorkerMaxMinutes);
     return task;
 }

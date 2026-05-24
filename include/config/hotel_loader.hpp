@@ -6,7 +6,7 @@
 
 class Hotel;
 
-/** Loads [simulation], [worker], and [schedule] sections from a single hotel file. */
+/** Loads [simulation], [worker], [schedule], [room], [reservation], [reservation_guest]. */
 class Hotel_loader {
 public:
   [[nodiscard]] static SimConfig load(const std::string &path, Hotel &hotel);

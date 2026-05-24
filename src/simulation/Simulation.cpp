@@ -5,6 +5,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 
@@ -34,6 +35,16 @@ Simulation::Simulation(const SimConfig &new_sim_config)
 
 Hotel &Simulation::get_hotel() { return hotel; }
 
+void Simulation::log_event(const std::string &category,
+                         const std::string &message) {
+  event_log_[category].push_back(
+      {message, static_cast<int>(current_tick)});
+}
+
+const SimEventLog &Simulation::get_event_log() const noexcept {
+  return event_log_;
+}
+
 void Simulation::set_config(const SimConfig &sim_config) {
   config = sim_config;
   event_generator =
@@ -41,14 +52,20 @@ void Simulation::set_config(const SimConfig &sim_config) {
 }
 
 void Simulation::try_fix_failure() {
-  const Task fix_failure{TaskType::FixFailure};
-  const bool assigned = hotel.assign_first_available(
-      StaffRole::MaintenanceWorker, fix_failure, hour_of_day(), weekday());
-  if (assigned) {
-    time_with_fail = 0U;
-    hotel.set_actual_failure(false);
+  if (hotel.has_pending_maintenance()) {
+    time_with_fail += config.minutesPerTick;
+    if (time_with_fail >= kFailureDestroyAfterMinutes) {
+      throw std::runtime_error("Hotel has been destroyed");
+    }
     return;
   }
+
+  if (hotel.try_assign_maintenance(hour_of_day(), weekday())) {
+    log_event(sim_event_category::awaria,
+              "Przypisano konserwatora do naprawy awarii.");
+    return;
+  }
+
   time_with_fail += config.minutesPerTick;
   if (time_with_fail >= kFailureDestroyAfterMinutes) {
     throw std::runtime_error("Hotel has been destroyed");
@@ -98,8 +115,10 @@ void Simulation::process_daily_dirty_rooms(std::chrono::sys_days today) {
   }
 
   last_daily_dirty_date = today;
-  std::cout << "[Sprzatanie] Dzienny reset o " << hotel.get_hotel_hour_start()
-            << ":00 — oznaczono " << marked << " pokoi jako brudne.\n";
+  std::ostringstream msg;
+  msg << "Dzienny reset o " << hotel.get_hotel_hour_start()
+      << ":00 — oznaczono " << marked << " pokoi jako brudne.";
+  log_event(sim_event_category::sprzatanie, msg.str());
 }
 
 bool Simulation::has_pending_reception(Reservation *reservation) const {
@@ -141,11 +160,17 @@ void Simulation::process_reception_completions() {
       continue;
     }
 
+    const unsigned int room_nr =
+        it->reservation->get_room().get_number();
     if (it->is_checkout) {
       hotel.complete_checkout(it->reservation);
       it->reservation->mark_checkout_settled();
+      log_event(sim_event_category::checkout,
+                "Wymeldowano pokoj nr " + std::to_string(room_nr));
     } else {
       it->reservation->mark_checked_in();
+      log_event(sim_event_category::check_in,
+                "Zameldowano pokoj nr " + std::to_string(room_nr));
     }
 
     it = pending_reception.erase(it);
@@ -175,6 +200,11 @@ void Simulation::check_checkout(unsigned int hour, unsigned int day) {
       if (receptionist != nullptr) {
         pending_reception.push_back(
             PendingReceptionTask{reservation, false, receptionist->get_uid()});
+        log_event(sim_event_category::check_in,
+                  "Przypisano recepcjonistke " +
+                      std::to_string(receptionist->get_uid()) +
+                      " do pokoju nr " +
+                      std::to_string(reservation->get_room().get_number()));
       } else {
         // TODO zadowolenie: brak wolnej recepcji w dniu meldunku.
         // apply_guest_satisfaction_penalty(reservation, 1);
@@ -199,6 +229,11 @@ void Simulation::check_checkout(unsigned int hour, unsigned int day) {
       if (receptionist != nullptr) {
         pending_reception.push_back(
             PendingReceptionTask{reservation, true, receptionist->get_uid()});
+        log_event(sim_event_category::checkout,
+                  "Przypisano recepcjonistke " +
+                      std::to_string(receptionist->get_uid()) +
+                      " do wymeldowania pokoju nr " +
+                      std::to_string(reservation->get_room().get_number()));
       } else {
         // TODO zadowolenie: brak recepcji przy wymeldowaniu.
         // apply_guest_satisfaction_penalty(reservation, 1);
@@ -227,6 +262,18 @@ void Simulation::process_cancellations() {
 void Simulation::tick() {
   current_tick++;
   hotel.tick(config.minutesPerTick);
+
+  const bool had_failure = hotel.get_actual_failure();
+  hotel.apply_completed_maintenance();
+  if (had_failure && !hotel.get_actual_failure()) {
+    time_with_fail = 0U;
+    if (active_event_ != nullptr) {
+      active_event_->clear();
+      active_event_.reset();
+    }
+    log_event(sim_event_category::awaria, "Awaria naprawiona.");
+  }
+
   process_reception_completions();
 
   const unsigned int hour = hour_of_day();
@@ -234,12 +281,14 @@ void Simulation::tick() {
 
   if (hotel.get_actual_failure()) {
     try_fix_failure();
-  } else if (const std::unique_ptr<HotelEvent> event =
+  } else if (std::unique_ptr<HotelEvent> event =
                  event_generator->decide_what_happens()) {
-    std::cout << "[Zdarzenie] Wystapilo zdarzenie hotelowe (szansa "
-              << config.event_probability << "%).\n";
-    (void)event;
-    hotel.set_actual_failure(true);
+    active_event_ = std::move(event);
+    active_event_->apply();
+    log_event(sim_event_category::awaria,
+              std::string(active_event_->description()) +
+                  " (szansa " + std::to_string(config.event_probability) +
+                  "%).");
     try_fix_failure();
   }
 
@@ -254,29 +303,48 @@ void Simulation::tick() {
 
   hotel.apply_completed_housekeeping();
   if (!hotel.get_actual_failure()) {
-    hotel.dispatch_housekeeping(hour, day);
+    const HousekeepingStats hk_stats =
+        hotel.collect_housekeeping_stats(hour, day);
+    const unsigned int hk_assigned =
+        hotel.dispatch_housekeeping(hour, day);
+    if (hk_stats.dirty_rooms > 0U || hk_assigned > 0U) {
+      std::ostringstream msg;
+      msg << "brudne: " << hk_stats.dirty_rooms << ", w kolejce: "
+          << hk_stats.need_assignment
+          << ", pokojowki wolne: " << hk_stats.housekeepers_free
+          << ", przypisano: " << hk_assigned;
+      log_event(sim_event_category::sprzatanie, msg.str());
+    }
   }
 
-  std::cout << "[Czas] Minal 1 tick (" << config.minutesPerTick
-            << " min). Obecny tick: " << current_tick << " (godz. " << hour
-            << ", dzien_tygodnia " << day << ")\n";
+  {
+    std::ostringstream msg;
+    msg << "Minal 1 tick (" << config.minutesPerTick
+        << " min). Obecny tick: " << current_tick << " (godz. " << hour
+        << ", dzien_tygodnia " << day << ")";
+    log_event(sim_event_category::czas, msg.str());
+  }
 }
 
 void Simulation::run() {
-  std::cout << "[Symulacja] Prawdopodobienstwo zdarzenia: "
-            << config.event_probability << "%\n";
+  log_event(sim_event_category::symulacja,
+            "Prawdopodobienstwo zdarzenia: " +
+                std::to_string(config.event_probability) + "%");
 
   if (config.max_ticks > 0U) {
-    std::cout << "[Symulacja] Start — " << config.max_ticks << " tickow.\n";
+    log_event(sim_event_category::symulacja,
+              "Start — " + std::to_string(config.max_ticks) + " tickow.");
     while (is_running && current_tick < config.max_ticks) {
       tick();
     }
     is_running = false;
-    std::cout << "[Symulacja] Koniec po " << current_tick << " tickach.\n";
+    log_event(sim_event_category::symulacja,
+              "Koniec po " + std::to_string(current_tick) + " tickach.");
     return;
   }
 
-  std::cout << "[Symulacja] Start — Enter = kolejny tick, q = koniec.\n";
+  log_event(sim_event_category::symulacja,
+            "Start — Enter = kolejny tick, q = koniec.");
   while (is_running) {
     std::cout << ">>> ";
     std::string cmd;
@@ -290,7 +358,8 @@ void Simulation::run() {
     }
     tick();
   }
-  std::cout << "[Symulacja] Koniec po " << current_tick << " tickach.\n";
+  log_event(sim_event_category::symulacja,
+            "Koniec po " + std::to_string(current_tick) + " tickach.");
 }
 
 unsigned int Simulation::get_current_tick() const noexcept {

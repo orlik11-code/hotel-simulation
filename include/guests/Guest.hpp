@@ -1,3 +1,6 @@
+#ifndef PROI_GUEST_HPP
+#define PROI_GUEST_HPP
+
 #include <string>
 
 class Guest {
@@ -16,3 +19,5 @@ protected:
   std::string surname;
   int satisfaction = 100;
 };
+
+#endif

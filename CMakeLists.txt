@@ -71,11 +71,15 @@ add_library(hotel_logic
         src/config/sim_config_parse.cpp
         src/config/config_loader.cpp
         src/config/hotel_loader.cpp
-        #guests
+        # guests
         include/guests/Guest.hpp
         include/guests/VIP.hpp
         include/guests/Family.hpp
         include/guests/Business.hpp
+        src/guests/Guest.cpp
+        src/guests/VIP.cpp
+        src/guests/Family.cpp
+        src/guests/Business.cpp
 )
 
 target_include_directories(hotel_logic PUBLIC include)
@@ -108,7 +112,11 @@ if (BUILD_TESTING)
                 tests/test_config_loader.cpp
                 tests/test_staff_loader.cpp
                 tests/test_hotel_loader.cpp
-                tests/test_simulation_date.cpp)
+                tests/test_simulation_date.cpp
+                tests/test_event_log.cpp
+                tests/test_housekeeping.cpp
+                tests/test_maintenance.cpp
+                tests/test_hotel_event.cpp)
         target_link_libraries(UnitTests PRIVATE hotel_logic Catch2::Catch2WithMain)
         add_test(NAME UnitTests COMMAND UnitTests)
     endif ()

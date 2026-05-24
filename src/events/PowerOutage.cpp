@@ -1,9 +1,14 @@
-//
-// Created by orlik on 15.05.2026.
-//
-
 #include "events/PowerOutage.h"
 
-PowerOutage::PowerOutage(Hotel &h) : HotelEvent(h) { h.set_power(false); }
+PowerOutage::PowerOutage(Hotel &h) : HotelEvent(h) {}
 
-PowerOutage::~PowerOutage() { hotel.set_power(true); }
+PowerOutage::~PowerOutage() = default;
+
+void PowerOutage::apply() {
+  hotel.set_power(false);
+  hotel.set_actual_failure(true);
+}
+
+void PowerOutage::clear() { hotel.set_power(true); }
+
+const char *PowerOutage::description() const { return "Awaria zasilania"; }

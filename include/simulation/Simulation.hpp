@@ -1,11 +1,14 @@
 #pragma once
 
 #include "events/EventGenerator.h"
+#include "events/HotelEvent.h"
 #include "hotel/Hotel.h"
+#include "simulation/SimEventLog.hpp"
 
 #include <chrono>
 #include <memory>
 #include <optional>
+#include <string>
 #include <vector>
 
 struct SimConfig {
@@ -26,9 +29,10 @@ private:
   bool is_running;
   unsigned int time_with_fail = 0;
   std::unique_ptr<EventGenerator> event_generator;
+  /** Aktywne zdarzenie do clear() po naprawie konserwatora. */
+  std::unique_ptr<HotelEvent> active_event_;
   std::vector<Reservation *> pending_cancellations;
 
-  /** Data ostatniego porannego batcha brudnych pokoi (operational day start). */
   std::optional<std::chrono::sys_days> last_daily_dirty_date;
 
   struct PendingReceptionTask {
@@ -37,6 +41,10 @@ private:
     unsigned int worker_uid = 0U;
   };
   std::vector<PendingReceptionTask> pending_reception;
+
+  SimEventLog event_log_;
+
+  void log_event(const std::string &category, const std::string &message);
 
   void try_fix_failure();
   void process_reception_completions();
@@ -63,7 +71,9 @@ public:
   Hotel &get_hotel();
 
   void schedule_cancellation(Reservation *reservation);
-  void apply_completed_housekeeping();
+
+  /** Bufor zdarzeń — bez EventLoggera; Konrad tylko odczytuje i renderuje. */
+  [[nodiscard]] const SimEventLog &get_event_log() const noexcept;
 
   [[nodiscard]] unsigned int get_current_tick() const noexcept;
   [[nodiscard]] unsigned int days_elapsed() const noexcept;

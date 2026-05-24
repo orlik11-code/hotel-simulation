@@ -163,6 +163,10 @@ void Hotel::set_power(bool on) { power = on; }
 
 void Hotel::set_evacuation(bool on) { evacuation = on; }
 
+bool Hotel::get_power() const noexcept { return power; }
+
+bool Hotel::get_evacuation() const noexcept { return evacuation; }
+
 unsigned int Hotel::get_hotel_hour_start() const noexcept {
   return hotel_hour_start;
 }
@@ -312,14 +316,15 @@ void Hotel::apply_completed_housekeeping() {
   }
 }
 
-void Hotel::dispatch_housekeeping(unsigned int hour_of_day,
-                                  unsigned int weekday_index) {
+
+unsigned int Hotel::dispatch_housekeeping(unsigned int hour_of_day,
+                                          unsigned int weekday_index) {
   if (get_actual_failure()) {
-    return;
+    return 0U;
   }
   if (hour_of_day < get_hotel_hour_start() ||
       hour_of_day >= get_hotel_hour_end()) {
-    return;
+    return 0U;
   }
 
   const HousekeepingStats stats =
@@ -351,15 +356,57 @@ void Hotel::dispatch_housekeeping(unsigned int hour_of_day,
     pending_housekeeping.push_back(
         {target, keeper->get_uid(), target->get_number()});
     ++assigned;
-    std::cout << "[Sprzatanie] Pokojowka " << keeper->get_uid()
-              << " -> pokoj nr " << target->get_number() << " (czas "
-              << task.duration_minutes << " min)\n";
   }
 
-  if (stats.dirty_rooms > 0U || assigned > 0U) {
-    std::cout << "[Sprzatanie] brudne: " << stats.dirty_rooms
-              << ", w kolejce: " << stats.need_assignment
-              << ", pokojowki wolne: " << stats.housekeepers_free
-              << ", przypisano: " << assigned << "\n";
+  return assigned;
+}
+
+std::vector<std::unique_ptr<Guest>> &Hotel::emplace_guest_list() {
+  guest_lists.emplace_back();
+  return guest_lists.back();
+}
+
+bool Hotel::has_pending_maintenance() const {
+  return !pending_maintenance.empty();
+}
+
+void Hotel::apply_completed_maintenance() {
+  auto it = pending_maintenance.begin();
+  while (it != pending_maintenance.end()) {
+    Staff *worker = find_by_uid(it->worker_uid);
+    if (worker == nullptr) {
+      it = pending_maintenance.erase(it);
+      continue;
+    }
+
+    if (worker->get_is_busy()) {
+      ++it;
+      continue;
+    }
+
+    if (worker->get_current_task().type != TaskType::FixFailure) {
+      ++it;
+      continue;
+    }
+
+    actual_failure = false;
+    it = pending_maintenance.erase(it);
   }
+}
+
+bool Hotel::try_assign_maintenance(unsigned int hour_of_day,
+                                   unsigned int weekday_index) {
+  if (!actual_failure || has_pending_maintenance()) {
+    return false;
+  }
+
+  const Task task = Task::make_fix_failure();
+  Staff *worker = assign_first_available_staff(
+      StaffRole::MaintenanceWorker, task, hour_of_day, weekday_index);
+  if (worker == nullptr) {
+    return false;
+  }
+
+  pending_maintenance.push_back({worker->get_uid()});
+  return true;
 }

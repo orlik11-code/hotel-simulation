@@ -7,15 +7,16 @@
 #include "../guests/Guest.hpp"
 #include "../rooms/Room.h"
 #include <chrono>
+#include <memory>
 #include <vector>
 
 class Reservation {
 public:
-  Reservation(const std::vector<Guest> &p, const Room *r,
+  Reservation(const std::vector<std::unique_ptr<Guest>> &p, const Room *r,
               std::chrono::year_month_day check_in,
               std::chrono::year_month_day check_out, bool food_included,
               unsigned int food_price);
-  const std::vector<Guest> &get_people() const;
+  const std::vector<std::unique_ptr<Guest>> &get_people() const;
   const Room &get_room() const;
   std::chrono::days get_nights() const;
   std::chrono::sys_days get_check_in() const;
@@ -45,7 +46,7 @@ private:
   std::chrono::sys_days check_out;
   bool check_out_request = false;
   const Room *room;
-  const std::vector<Guest> &people;
+  const std::vector<std::unique_ptr<Guest>> &people;
   std::chrono::days nights;
   bool is_paid = false;
   bool food_included;
