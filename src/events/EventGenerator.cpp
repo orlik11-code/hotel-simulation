@@ -8,6 +8,9 @@
 #include "events/PowerOutage.h"
 
 #include <random>
+
+// TODO: użyć random_chance(probability_event_happens) i random_chance(70U) z simulation_rng.
+
 Hotel &EventGenerator::get_hotel() const { return this->hotel; }
 
 EventGenerator::EventGenerator(Hotel &h, unsigned int p)

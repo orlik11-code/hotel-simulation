@@ -4,6 +4,7 @@
 #include "events/HotelEvent.h"
 #include "hotel/Hotel.h"
 #include "simulation/SimEventLog.hpp"
+#include "meal/MealTypes.hpp"
 
 #include <chrono>
 #include <memory>
@@ -19,7 +20,10 @@ struct SimConfig {
   unsigned int event_probability = 5;
   /** Invalid until set from config (date_start=YYYY-MM-DD). */
   std::chrono::year_month_day date_start{};
+  std::vector<MealServiceWindow> meal_windows;
 };
+
+
 
 class Simulation {
 private:

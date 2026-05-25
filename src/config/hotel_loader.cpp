@@ -33,7 +33,8 @@ enum class ParseSection {
   schedule,
   room,
   reservation,
-  reservation_guest
+  reservation_guest,
+  meal_service
 };
 
 struct ScheduleEntry {

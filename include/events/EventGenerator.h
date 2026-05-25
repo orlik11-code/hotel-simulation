@@ -10,6 +10,8 @@
 
 #include <random>
 
+// TODO: przejść na simulation_rng.hpp / random_chance zamiast własnego rd+gen.
+
 class EventGenerator {
 public:
   EventGenerator(Hotel &h, unsigned int probability_event_happens);
