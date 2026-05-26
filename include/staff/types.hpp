@@ -70,4 +70,6 @@ struct Task {
     /** Fabryka sprzątania pokoju — losowy czas 5–25 minut włącznie. */
     [[nodiscard]] static Task make_clean_room();
     [[nodiscard]] static Task make_fix_failure();
+    [[nodiscard]] static Task make_cook_meal();
+    [[nodiscard]] static Task make_serve_meal();
 };

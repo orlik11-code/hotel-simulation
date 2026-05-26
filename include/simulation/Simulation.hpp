@@ -1,5 +1,6 @@
 #pragma once
 
+#include "booking/Reservation.h"
 #include "events/EventGenerator.h"
 #include "events/HotelEvent.h"
 #include "hotel/Hotel.h"
@@ -21,8 +22,41 @@ struct SimConfig {
   /** Invalid until set from config (date_start=YYYY-MM-DD). */
   std::chrono::year_month_day date_start{};
   std::vector<MealServiceWindow> meal_windows;
+  /** Szansa 1–100, że gość z food_included przyjdzie na dany posiłek w danym dniu. */
+  unsigned int meal_attendance_percent = 80U;
 };
 
+enum class MealPhase { Cooking, Ready };
+
+struct PendingMealTask {
+  Reservation *reservation = nullptr;
+  MealType meal_type{};
+  MealPhase phase = MealPhase::Cooking;
+  unsigned int worker_uid = 0U;
+};
+
+// raz na dzien
+struct MealAttendancePlan {
+  Reservation *reservation = nullptr;
+  MealType meal_type{};
+  std::chrono::sys_days day{};
+  bool will_attend = false;
+  unsigned int planned_arrival_hour = 0U;
+};
+
+// przyszedl
+struct MealServedRecord {
+  Reservation *reservation = nullptr;
+  MealType meal_type{};
+  std::chrono::sys_days day{};
+};
+
+// Gość nie przyszedł
+struct MealNoShowRecord {
+  Reservation *reservation = nullptr;
+  MealType meal_type{};
+  std::chrono::sys_days day{};
+};
 
 
 class Simulation {
@@ -36,6 +70,12 @@ private:
   /** Aktywne zdarzenie do clear() po naprawie konserwatora. */
   std::unique_ptr<HotelEvent> active_event_;
   std::vector<Reservation *> pending_cancellations;
+
+  // meals logic
+  std::vector<MealAttendancePlan> meal_attendance_plans_;
+  std::vector<PendingMealTask> pending_meals_;
+  std::vector<MealServedRecord> meals_served_;
+  std::vector<MealNoShowRecord> meal_no_shows_;
 
   std::optional<std::chrono::sys_days> last_daily_dirty_date;
 
@@ -63,6 +103,24 @@ private:
   [[nodiscard]] bool should_run_daily_dirty(unsigned int hour_of_day,
                                           std::chrono::sys_days today) const;
   void process_daily_dirty_rooms(std::chrono::sys_days today);
+
+  [[nodiscard]] std::optional<MealType> current_meal_slot(unsigned int hour) const;
+  [[nodiscard]] const MealServiceWindow *
+  find_meal_window(MealType meal_type) const noexcept;
+  [[nodiscard]] bool has_meal_plan(Reservation *reservation, MealType meal_type,
+                                   std::chrono::sys_days day) const;
+  [[nodiscard]] bool already_served(Reservation *reservation, MealType meal_type,
+                                    std::chrono::sys_days day) const;
+  [[nodiscard]] bool has_no_show(Reservation *reservation, MealType meal_type,
+                                 std::chrono::sys_days day) const;
+  [[nodiscard]] bool has_pending_meal(Reservation *reservation,
+                                      MealType meal_type) const;
+  [[nodiscard]] const MealAttendancePlan *
+  find_meal_plan(Reservation *reservation, MealType meal_type,
+                 std::chrono::sys_days day) const;
+  void ensure_meal_attendance_plans(MealType slot, std::chrono::sys_days today);
+  void process_meal_completions();
+  void dispatch_meals(MealType slot, unsigned int hour, unsigned int day);
 
 public:
   Simulation(const SimConfig &sim_config);

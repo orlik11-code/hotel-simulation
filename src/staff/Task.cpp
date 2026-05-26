@@ -1,21 +1,11 @@
+#include "simulation/simulation_rng.hpp"
 #include "staff/types.hpp"
-
-#include <random>
 
 namespace {
 
-std::mt19937& task_rng()
-{
-    static std::random_device randomize;
-    static std::mt19937 gen(randomize());
-    return gen;
-}
-
 [[nodiscard]] unsigned int random_minutes(unsigned int min_minutes,
-                                            unsigned int max_minutes)
-{
-    std::uniform_int_distribution<unsigned int> dist(min_minutes, max_minutes);
-    return dist(task_rng());
+                                          unsigned int max_minutes) {
+  return random_unsigned(min_minutes, max_minutes);
 }
 
 constexpr unsigned int kReceptionistTaskMinMinutes = 1U;
@@ -26,6 +16,12 @@ constexpr unsigned int kHousekeeperTaskMaxMinutes = 25U;
 
 constexpr unsigned int kMaintanceWorkerMinMinutes = 5U;
 constexpr unsigned int kMaintanceWorkerMaxMinutes = 30U;
+
+constexpr unsigned int kCookMealMinMinutes = 10U;
+constexpr unsigned int kCookMealMaxMinutes = 25U;
+
+constexpr unsigned int kServeMealMinMinutes = 5U;
+constexpr unsigned int kServeMealMaxMinutes = 15U;
 
 constexpr unsigned int kRandomDeltaMaxMinutes = 20U;
 
@@ -71,4 +67,20 @@ Task Task::make_fix_failure()
     task.duration_minutes =
         random_minutes(kMaintanceWorkerMinMinutes, kMaintanceWorkerMaxMinutes);
     return task;
+}
+
+Task Task::make_cook_meal() {
+  Task task;
+  task.type = TaskType::CookMeal;
+  task.duration_minutes =
+      random_minutes(kCookMealMinMinutes, kCookMealMaxMinutes);
+  return task;
+}
+
+Task Task::make_serve_meal() {
+  Task task;
+  task.type = TaskType::ServeMeal;
+  task.duration_minutes =
+      random_minutes(kServeMealMinMinutes, kServeMealMaxMinutes);
+  return task;
 }

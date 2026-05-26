@@ -1,5 +1,8 @@
+#pragma once
+
 #include <string>
-enum class MealType {breakfast, dinner};
+
+enum class MealType { breakfast, dinner };
 
 
 struct MealServiceWindow

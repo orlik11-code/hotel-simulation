@@ -20,6 +20,13 @@ void apply_key(SimConfig &config, const std::string &key,
         file_parse::parse_percent(value, "event_probability");
   } else if (key == "date_start") {
     config.date_start = file_parse::parse_date(value, "date_start");
+  } else if (key == "meal_attendance_percent") {
+    const unsigned int percent =
+        file_parse::parse_positive(value, "meal_attendance_percent");
+    if (percent > 100U) {
+      throw std::invalid_argument("meal_attendance_percent cannot exceed 100");
+    }
+    config.meal_attendance_percent = percent;
   } else {
     throw std::invalid_argument("Unknown simulation key: " + key);
   }

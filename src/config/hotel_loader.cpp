@@ -13,6 +13,8 @@
 #include "rooms/DoubleRoom.h"
 #include "rooms/SingleRoom.h"
 #include "rooms/TripleRoom.h"
+#include "meal/MealTypes.hpp"
+#include "simulation/Simulation.hpp"
 
 #include <fstream>
 #include <memory>
@@ -79,6 +81,12 @@ struct ReservationDraft {
   bool food_included = false;
   unsigned int food_price = 0U;
   std::vector<GuestDraft> guests;
+};
+
+struct MealServiceDraft {
+  std::optional<MealType> type;
+  std::optional<unsigned int> start_hour;
+  std::optional<unsigned int> end_hour;
 };
 
 struct LoadContext {
@@ -155,6 +163,17 @@ struct LoadContext {
                               ": unknown room type '" + value + "'");
 }
 
+[[nodiscard]] MealType parse_meal(const std::string &value, unsigned int line_no) {
+  if (value == "breakfast") {
+    return MealType::breakfast;
+  }
+  if (value == "dinner") {
+    return MealType::dinner;
+  }
+  throw std::invalid_argument("Line " + std::to_string(line_no) +
+                              ": unknown meal type '" + value + "'");
+}
+
 [[nodiscard]] std::unique_ptr<Staff> make_worker(const WorkerDraft &draft,
                                                  unsigned int line_no) {
   if (!draft.uid || !draft.role || !draft.name || !draft.surname ||
@@ -185,6 +204,16 @@ struct LoadContext {
   }
   throw std::invalid_argument("Line " + std::to_string(line_no) +
                               ": unsupported role");
+}
+
+[[nodiscard]] MealServiceWindow make_meal(const MealServiceDraft &draft,
+                                          unsigned int line_no) {
+  if (!draft.type || !draft.end_hour || !draft.start_hour) {
+    throw std::invalid_argument("Line " + std::to_string(line_no) +
+                                ": incomplete [meal_service] section");
+  }
+
+  return MealServiceWindow{*draft.type, *draft.start_hour, *draft.end_hour};
 }
 
 [[nodiscard]] std::unique_ptr<Room> make_room(const RoomDraft &draft,
@@ -259,6 +288,20 @@ void apply_worker_key(WorkerDraft &draft, const std::string &key,
   } else {
     throw std::invalid_argument("Line " + std::to_string(line_no) +
                                 ": unknown worker key '" + key + "'");
+  }
+}
+
+void apply_meal_service_key(MealServiceDraft &draft, const std::string &key,
+                            const std::string &value, unsigned int line_no) {
+  if (key == "start_hour") {
+    draft.start_hour = file_parse::parse_positive(value, "start_hour");
+  } else if (key == "type") {
+    draft.type = parse_meal(value, line_no);
+  } else if (key == "end_hour") {
+    draft.end_hour = file_parse::parse_positive(value, "end_hour");
+  } else {
+    throw std::invalid_argument("Line " + std::to_string(line_no) +
+                                ": unknown meal_service key '" + key + "'");
   }
 }
 
@@ -422,6 +465,21 @@ void flush_room(Hotel &hotel, LoadContext &ctx, RoomDraft &draft,
   draft = RoomDraft{};
 }
 
+void flush_meal_service(SimConfig &config, MealServiceDraft &draft,
+                        unsigned int line_no) {
+  if (!draft.type) {
+    return;
+  }
+
+  const MealServiceWindow window = make_meal(draft, line_no);
+  if (window.start_hour > 24U || window.end_hour > 24U) {
+    throw std::invalid_argument("only 24h in dobe!");
+  }
+  config.meal_windows.push_back(window);
+  draft = MealServiceDraft{};
+}
+
+
 void flush_reservation(Hotel &hotel, LoadContext &ctx, ReservationDraft &draft,
                        unsigned int line_no) {
   if (!draft.room_number) {
@@ -471,12 +529,13 @@ void flush_open_schedule(WorkerDraft &worker_draft, ScheduleEntry &schedule,
   }
 }
 
-void flush_before_section_change(Hotel &hotel, LoadContext &ctx,
-                                 WorkerDraft &worker_draft,
+void flush_before_section_change(SimConfig &config, Hotel &hotel,
+                                 LoadContext &ctx, WorkerDraft &worker_draft,
                                  ScheduleEntry &schedule, bool &schedule_has_keys,
                                  RoomDraft &room_draft,
                                  ReservationDraft &reservation_draft,
                                  GuestDraft &guest_draft, bool &guest_has_keys,
+                                 MealServiceDraft &meal_draft,
                                  unsigned int line_no) {
   flush_open_schedule(worker_draft, schedule, schedule_has_keys);
   flush_worker(hotel, worker_draft, line_no);
@@ -484,6 +543,7 @@ void flush_before_section_change(Hotel &hotel, LoadContext &ctx,
   guest_has_keys = false;
   flush_reservation(hotel, ctx, reservation_draft, line_no);
   flush_room(hotel, ctx, room_draft, line_no);
+  flush_meal_service(config, meal_draft, line_no);
 }
 
 } // namespace
@@ -504,6 +564,7 @@ SimConfig Hotel_loader::load(const std::string &path, Hotel &hotel) {
   ReservationDraft reservation_draft;
   GuestDraft guest_draft;
   bool guest_has_keys = false;
+  MealServiceDraft meal_draft;
   std::string line;
   unsigned int line_no = 0;
 
@@ -516,18 +577,18 @@ SimConfig Hotel_loader::load(const std::string &path, Hotel &hotel) {
     const std::string header = file_parse::parse_section_header(line);
     if (!header.empty()) {
       if (header == "simulation") {
-        flush_before_section_change(hotel, ctx, worker_draft, current_schedule,
-                                    schedule_has_keys, room_draft,
-                                    reservation_draft, guest_draft,
-                                    guest_has_keys, line_no);
+        flush_before_section_change(config, hotel, ctx, worker_draft,
+                                    current_schedule, schedule_has_keys,
+                                    room_draft, reservation_draft, guest_draft,
+                                    guest_has_keys, meal_draft, line_no);
         section = ParseSection::simulation;
         continue;
       }
       if (header == "worker") {
-        flush_before_section_change(hotel, ctx, worker_draft, current_schedule,
-                                    schedule_has_keys, room_draft,
-                                    reservation_draft, guest_draft,
-                                    guest_has_keys, line_no);
+        flush_before_section_change(config, hotel, ctx, worker_draft,
+                                    current_schedule, schedule_has_keys,
+                                    room_draft, reservation_draft, guest_draft,
+                                    guest_has_keys, meal_draft, line_no);
         section = ParseSection::worker;
         continue;
       }
@@ -543,18 +604,18 @@ SimConfig Hotel_loader::load(const std::string &path, Hotel &hotel) {
         continue;
       }
       if (header == "room") {
-        flush_before_section_change(hotel, ctx, worker_draft, current_schedule,
-                                    schedule_has_keys, room_draft,
-                                    reservation_draft, guest_draft,
-                                    guest_has_keys, line_no);
+        flush_before_section_change(config, hotel, ctx, worker_draft,
+                                    current_schedule, schedule_has_keys,
+                                    room_draft, reservation_draft, guest_draft,
+                                    guest_has_keys, meal_draft, line_no);
         section = ParseSection::room;
         continue;
       }
       if (header == "reservation") {
-        flush_before_section_change(hotel, ctx, worker_draft, current_schedule,
-                                    schedule_has_keys, room_draft,
-                                    reservation_draft, guest_draft,
-                                    guest_has_keys, line_no);
+        flush_before_section_change(config, hotel, ctx, worker_draft,
+                                    current_schedule, schedule_has_keys,
+                                    room_draft, reservation_draft, guest_draft,
+                                    guest_has_keys, meal_draft, line_no);
         section = ParseSection::reservation;
         continue;
       }
@@ -569,6 +630,14 @@ SimConfig Hotel_loader::load(const std::string &path, Hotel &hotel) {
                            line_no);
         guest_has_keys = false;
         section = ParseSection::reservation_guest;
+        continue;
+      }
+      if (header == "meal_service") {
+        flush_before_section_change(config, hotel, ctx, worker_draft,
+                                    current_schedule, schedule_has_keys,
+                                    room_draft, reservation_draft, guest_draft,
+                                    guest_has_keys, meal_draft, line_no);
+        section = ParseSection::meal_service;
         continue;
       }
       throw std::invalid_argument("Line " + std::to_string(line_no) +
@@ -591,15 +660,17 @@ SimConfig Hotel_loader::load(const std::string &path, Hotel &hotel) {
     } else if (section == ParseSection::reservation_guest) {
       apply_guest_key(guest_draft, key, value, line_no);
       guest_has_keys = true;
+    } else if (section == ParseSection::meal_service) {
+      apply_meal_service_key(meal_draft, key, value, line_no);
     } else {
       throw std::invalid_argument("Line " + std::to_string(line_no) +
                                   ": key=value outside a section");
     }
   }
 
-  flush_before_section_change(hotel, ctx, worker_draft, current_schedule,
+  flush_before_section_change(config, hotel, ctx, worker_draft, current_schedule,
                               schedule_has_keys, room_draft, reservation_draft,
-                              guest_draft, guest_has_keys, line_no);
+                              guest_draft, guest_has_keys, meal_draft, line_no);
 
   return config;
 }
