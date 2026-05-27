@@ -91,9 +91,7 @@ void Simulation::apply_guest_satisfaction_penalty(Reservation *reservation,
                                                   int penalty_points) {
   (void)reservation;
   (void)penalty_points;
-  // TODO zadowolenie: reservation->penalize_guests(penalty_points) albo pętla
-  // po get_people() → Guest::reduce_satisfaction (VIP/Business/Family).
-  // Wymaga poprawnej polimorfii gości — patrz docs/KONRAD_RESERVATION_KROKI.md krok 4.
+  // TODO zadowolenie: reservation->penalize_guests(penalty_points) (API Konrada).
 }
 
 bool Simulation::should_run_daily_dirty(
@@ -667,6 +665,10 @@ std::string Simulation::format_virtual_time() const {
 
 unsigned int Simulation::hour_of_day() const noexcept {
   return (minutes_from_midnight() / 60U) % 24U;
+}
+
+unsigned int Simulation::minutes_of_hour() const noexcept {
+  return minutes_from_midnight() % 60U;
 }
 
 unsigned int Simulation::weekday() const noexcept {

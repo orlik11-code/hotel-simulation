@@ -514,8 +514,8 @@ void flush_reservation(Hotel &hotel, LoadContext &ctx, ReservationDraft &draft,
 
   Room *room = room_it->second;
   hotel.add_reservation(std::make_unique<Reservation>(
-      people, room, *draft.check_in, *draft.check_out, draft.food_included,
-      draft.food_price));
+      std::move(people), room, *draft.check_in, *draft.check_out,
+      draft.food_included, draft.food_price));
 
   draft = ReservationDraft{};
 }

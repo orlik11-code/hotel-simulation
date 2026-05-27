@@ -137,6 +137,7 @@ public:
 
   void run();
   void tick();
+  [[nodiscard]] unsigned int minutes_of_hour() const noexcept;
 
   Hotel &get_hotel();
 

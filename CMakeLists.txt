@@ -131,6 +131,7 @@ if (BUILD_TESTING)
             tests/test_housekeeping.cpp
             tests/test_maintenance.cpp
             tests/test_hotel_event.cpp
+            tests/test_meal_dispatch.cpp
         )
         target_link_libraries(Catch2Units PRIVATE hotel_logic Catch2::Catch2WithMain)
         add_test(NAME Catch2Units COMMAND Catch2Units)
