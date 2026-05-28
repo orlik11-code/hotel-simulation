@@ -5,6 +5,7 @@
 #include "staff/types.hpp"
 
 #include <chrono>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -35,11 +36,24 @@ Simulation::Simulation(const SimConfig &new_sim_config)
                               hotel, config.event_probability)) {}
 
 Hotel &Simulation::get_hotel() { return hotel; }
+// FLAG FLAG
+void Simulation::set_live_console_output(bool enabled) noexcept {
+  live_console_output_ = enabled;
+}
 
 void Simulation::log_event(const std::string &category,
                          const std::string &message) {
   event_log_[category].push_back(
       {message, static_cast<int>(current_tick)});
+
+  // FLAG FLAG
+  if (!live_console_output_) {
+    return;
+  }
+
+  std::cout << '[' << format_virtual_time() << "] [" << category << "] "
+            << message << '\n';
+  std::cout.flush();
 }
 
 const SimEventLog &Simulation::get_event_log() const noexcept {
@@ -572,6 +586,8 @@ void Simulation::tick() {
 }
 
 void Simulation::run() {
+
+
   log_event(sim_event_category::symulacja,
             "Prawdopodobienstwo zdarzenia: " +
                 std::to_string(config.event_probability) + "%");
@@ -585,6 +601,7 @@ void Simulation::run() {
     is_running = false;
     log_event(sim_event_category::symulacja,
               "Koniec po " + std::to_string(current_tick) + " tickach.");
+
     return;
   }
 
@@ -622,14 +639,34 @@ std::chrono::sys_days Simulation::actual_date() const noexcept {
   return get_actual_date(days_elapsed());
 }
 
-unsigned int Simulation::hour_of_day() const noexcept {
+unsigned int Simulation::minutes_from_midnight() const noexcept {
   if (current_tick == 0U) {
     return 0U;
   }
   const unsigned int slot_in_day = (current_tick - 1U) % config.ticsPerDay;
-  const unsigned int minutes_from_midnight =
-      slot_in_day * config.minutesPerTick;
-  return (minutes_from_midnight / 60U) % 24U;
+  return slot_in_day * config.minutesPerTick;
+}
+
+std::string Simulation::format_virtual_time() const {
+  const unsigned int total_minutes = minutes_from_midnight();
+  const unsigned int hour = (total_minutes / 60U) % 24U;
+  const unsigned int minute = total_minutes % 60U;
+
+  std::ostringstream out;
+  if (config.date_start.ok()) {
+    const std::chrono::year_month_day ymd{actual_date()};
+    out << std::setfill('0') << static_cast<int>(ymd.year()) << '-'
+        << std::setw(2) << static_cast<unsigned>(ymd.month()) << '-'
+        << std::setw(2) << static_cast<unsigned>(ymd.day());
+  } else {
+    out << "dzien-" << days_elapsed();
+  }
+  out << ' ' << std::setw(2) << hour << ':' << std::setw(2) << minute;
+  return out.str();
+}
+
+unsigned int Simulation::hour_of_day() const noexcept {
+  return (minutes_from_midnight() / 60U) % 24U;
 }
 
 unsigned int Simulation::weekday() const noexcept {

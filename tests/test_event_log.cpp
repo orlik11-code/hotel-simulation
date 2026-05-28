@@ -11,6 +11,8 @@ TEST_CASE("Simulation fills event log map during run") {
   cfg.max_ticks = 2U;
 
   Simulation simulation(cfg);
+  // FLAG FLAG
+  simulation.set_live_console_output(false);
   REQUIRE(simulation.get_event_log().empty());
 
   simulation.run();

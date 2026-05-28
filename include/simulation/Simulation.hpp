@@ -71,6 +71,9 @@ private:
   std::unique_ptr<HotelEvent> active_event_;
   std::vector<Reservation *> pending_cancellations;
 
+  /** Tymczasowy cout w log_event; docelowo EventLogger (Konrad). */
+  bool live_console_output_ = false;
+
   // meals logic
   std::vector<MealAttendancePlan> meal_attendance_plans_;
   std::vector<PendingMealTask> pending_meals_;
@@ -89,6 +92,8 @@ private:
   SimEventLog event_log_;
 
   void log_event(const std::string &category, const std::string &message);
+
+  [[nodiscard]] std::string format_virtual_time() const;
 
   void try_fix_failure();
   void process_reception_completions();
@@ -127,6 +132,9 @@ public:
 
   void set_config(const SimConfig &sim_config);
 
+  /** Wlacza tymczasowy wypis zdarzen na cout (np. w main / HotelApp). */
+  void set_live_console_output(bool enabled) noexcept;
+
   void run();
   void tick();
 
@@ -141,6 +149,7 @@ public:
   [[nodiscard]] unsigned int days_elapsed() const noexcept;
   [[nodiscard]] std::chrono::sys_days actual_date() const noexcept;
   [[nodiscard]] unsigned int hour_of_day() const noexcept;
+  [[nodiscard]] unsigned int minutes_from_midnight() const noexcept;
   [[nodiscard]] unsigned int weekday() const noexcept;
   [[nodiscard]] unsigned int minutes_per_tick() const noexcept;
 };

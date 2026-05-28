@@ -16,6 +16,7 @@ int main(int argc, char *argv[]) {
     config = Config_loader::load(argc, argv, config);
 
     simulation.set_config(config);
+    simulation.set_live_console_output(true);
     simulation.run();
   } catch (const std::exception &e) {
     std::cerr << "Error: " << e.what() << '\n';
