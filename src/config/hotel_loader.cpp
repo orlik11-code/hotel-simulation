@@ -14,7 +14,7 @@
 #include "rooms/SingleRoom.h"
 #include "rooms/TripleRoom.h"
 #include "meal/MealTypes.hpp"
-#include "simulation/Simulation.hpp"
+#include "simulation/SimConfig.hpp"
 
 #include <fstream>
 #include <memory>
