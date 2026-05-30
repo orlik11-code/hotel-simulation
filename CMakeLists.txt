@@ -15,78 +15,88 @@ else ()
 endif ()
 
 add_library(hotel_logic
-        # staff
-        include/staff/types.hpp
-        include/staff/Staff.hpp
-        include/staff/Receptionist.hpp
-        include/staff/Housekeeper.hpp
-        include/staff/Chef.hpp
-        include/staff/Waiter.hpp
-        include/staff/MaintenanceWorker.hpp
-        src/staff/Task.cpp
-        src/staff/Staff.cpp
-        src/staff/Receptionist.cpp
-        src/staff/Housekeeper.cpp
-        src/staff/Chef.cpp
-        src/staff/Waiter.cpp
-        src/staff/MaintenanceWorker.cpp
-        src/staff/staff_loader.cpp
-        # rooms
-        include/rooms/Room.h
-        include/rooms/SingleRoom.h
-        include/rooms/DoubleRoom.h
-        include/rooms/TripleRoom.h
-        include/rooms/Apartment.h
-        src/rooms/Room.cpp
-        src/rooms/SingleRoom.cpp
-        src/rooms/DoubleRoom.cpp
-        src/rooms/TripleRoom.cpp
-        src/rooms/Apartment.cpp
-        # hotel
-        include/hotel/Hotel.h
-        src/hotel/Hotel.cpp
-        # events
-        include/events/HotelEvent.h
-        include/events/PowerOutage.h
-        include/events/FireAlarm.h
-        include/events/EventGenerator.h
-        src/events/HotelEvent.cpp
-        src/events/PowerOutage.cpp
-        src/events/FireAlarm.cpp
-        src/events/EventGenerator.cpp
-        # booking
-        include/booking/Reservation.h
-        include/booking/Bill.h
-        src/booking/Reservation.cpp
-        src/booking/Bill.cpp
-        # simulation
-        include/simulation/Simulation.hpp
-        src/simulation/Simulation.cpp
-        # config / loaders
-        include/config/file_parse.hpp
-        include/config/sim_config_parse.hpp
-        include/config/config_loader.hpp
-        include/config/hotel_loader.hpp
-        src/config/file_parse.cpp
-        src/config/sim_config_parse.cpp
-        src/config/config_loader.cpp
-        src/config/hotel_loader.cpp
-        # guests
-        include/guests/Guest.hpp
-        include/guests/VIP.hpp
-        include/guests/Family.hpp
-        include/guests/Business.hpp
-        src/guests/Guest.cpp
-        src/guests/VIP.cpp
-        src/guests/Family.cpp
-        src/guests/Business.cpp
-        include/logger/logger.hpp
-        include/logger/Logger.hpp
+    # booking
+    include/booking/Bill.h
+    include/booking/Reservation.h
+    include/booking/booking.hpp
+    src/booking/Bill.cpp
+    src/booking/Reservation.cpp
+    # guests
+    include/guests/VIP.hpp
+    include/guests/Guest.hpp
+    include/guests/Business.hpp
+    include/guests/Family.hpp
+    src/guests/VIP.cpp
+    src/guests/Business.cpp
+    src/guests/Guest.cpp
+    src/guests/Family.cpp
+    # hotel
+    include/hotel/Hotel.h
+    src/hotel/Hotel.cpp
+    # events
+    include/events/FireAlarm.h
+    include/events/PowerOutage.h
+    include/events/events.hpp
+    include/events/EventGenerator.h
+    include/events/HotelEvent.h
+    src/events/EventGenerator.cpp
+    src/events/HotelEvent.cpp
+    src/events/PowerOutage.cpp
+    src/events/FireAlarm.cpp
+    # meal
+    include/meal/MealTypes.hpp
+    src/meal/MealTypes.cpp
+    # logger
+    include/logger/Logger.hpp
+    src/logger/Logger.cpp
+    # config
+    include/file_parse.hpp
+    include/config/file_parse.hpp
+    include/config/sim_config_parse.hpp
+    include/config/config_loader.hpp
+    include/config/hotel_loader.hpp
+    src/config/file_parse.cpp
+    src/config/hotel_loader.cpp
+    src/config/config_loader.cpp
+    src/config/sim_config_parse.cpp
+    # rooms
+    include/rooms/Room.h
+    include/rooms/SingleRoom.h
+    include/rooms/DoubleRoom.h
+    include/rooms/TripleRoom.h
+    include/rooms/Apartment.h
+    include/rooms/rooms.hpp
+    src/rooms/Room.cpp
+    src/rooms/SingleRoom.cpp
+    src/rooms/DoubleRoom.cpp
+    src/rooms/TripleRoom.cpp
+    src/rooms/Apartment.cpp
+    # simulation
+    include/simulation/Simulation.hpp
+    src/simulation/Simulation.cpp
+    # staff
+    include/staff/types.hpp
+    include/staff/Staff.hpp
+    include/staff/Receptionist.hpp
+    include/staff/Housekeeper.hpp
+    include/staff/Chef.hpp
+    include/staff/Waiter.hpp
+    include/staff/MaintenanceWorker.hpp
+    src/staff/Task.cpp
+    src/staff/Staff.cpp
+    src/staff/Receptionist.cpp
+    src/staff/Housekeeper.cpp
+    src/staff/Chef.cpp
+    src/staff/Waiter.cpp
+    src/staff/MaintenanceWorker.cpp
+    src/staff/staff_loader.cpp
 )
 
 target_include_directories(hotel_logic PUBLIC include)
 target_compile_options(hotel_logic PRIVATE -Wno-error)
 
+
+# Executables
 if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
     add_executable(HotelApp src/main.cpp)
     target_link_libraries(HotelApp PRIVATE hotel_logic)
@@ -110,15 +120,16 @@ if (BUILD_TESTING)
 
     if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_staff.cpp")
         add_executable(UnitTests
-                tests/test_staff.cpp
-                tests/test_config_loader.cpp
-                tests/test_staff_loader.cpp
-                tests/test_hotel_loader.cpp
-                tests/test_simulation_date.cpp
-                tests/test_event_log.cpp
-                tests/test_housekeeping.cpp
-                tests/test_maintenance.cpp
-                tests/test_hotel_event.cpp)
+            tests/test_staff.cpp
+            tests/test_config_loader.cpp
+            tests/test_staff_loader.cpp
+            tests/test_hotel_loader.cpp
+            tests/test_simulation_date.cpp
+            tests/test_event_log.cpp
+            tests/test_housekeeping.cpp
+            tests/test_maintenance.cpp
+            tests/test_hotel_event.cpp
+        )
         target_link_libraries(UnitTests PRIVATE hotel_logic Catch2::Catch2WithMain)
         add_test(NAME UnitTests COMMAND UnitTests)
     endif ()
