@@ -30,7 +30,8 @@ public:
   bool get_check_out_request() const;
   unsigned int get_food_price() const;
   bool get_is_cancelled() const;
-  void cancel(std::chrono::sys_days hotel_time);
+  void cancel_by_guest(std::chrono::sys_days hotel_time);
+  void cancel_by_hotel(std::chrono::sys_days hotel_time);
 
   /** Recepcja zakończyła meldunek (nie mylić z check_has_begun — kalendarz). */
   [[nodiscard]] bool is_checked_in() const;
@@ -38,6 +39,7 @@ public:
   [[nodiscard]] bool is_checkout_settled() const;
   void mark_checked_in();
   void mark_checkout_settled();
+  void set_payment_no_effort();
 
   ~Reservation() = default;
 
@@ -49,6 +51,7 @@ private:
   const std::vector<std::unique_ptr<Guest>> &people;
   std::chrono::days nights;
   bool is_paid = false;
+  bool payment_no_effort = false;
   bool food_included;
   unsigned int food_price;
   bool cancelled = false;

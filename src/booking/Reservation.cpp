@@ -97,12 +97,30 @@ std::chrono::sys_days Reservation::get_check_in() const { return check_in; }
 
 std::chrono::sys_days Reservation::get_check_out() const { return check_out; }
 
-void Reservation::cancel(std::chrono::sys_days hotel_time) {
-  (void)hotel_time;
+void Reservation::cancel_by_guest(std::chrono::sys_days hotel_time) {
   if (cancelled) {
     return;
   }
   cancelled = true;
+
+  if (hotel_time - std::chrono::sys_days{check_in} >= std::chrono::days{2}) {
+    is_paid = true;
+  } else {
+    set_payment_no_effort();
+  }
+}
+
+void Reservation::cancel_by_hotel(std::chrono::sys_days hotel_time) {
+  if (cancelled) {
+    return;
+  }
+  cancelled = true;
+  is_paid = true;
+  if (hotel_time - std::chrono::sys_days{check_in} < std::chrono::days{1}) {
+    for (const auto &guest : people) {
+      guest->reduce_satisfaction(10);
+    }
+  }
 }
 
 bool Reservation::get_is_cancelled() const { return cancelled; }
