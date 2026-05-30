@@ -10,15 +10,13 @@
 #include <memory>
 #include <vector>
 
-
 struct PendingHousekeeping {
   Room *room = nullptr;
   unsigned int worker_uid = 0U;
   unsigned int room_number = 0U;
 };
 
-struct PendingMaintenance
-{
+struct PendingMaintenance {
   unsigned int worker_uid = 0U;
 };
 
@@ -33,7 +31,8 @@ struct HousekeepingStats {
 class Hotel {
 private:
   std::vector<std::unique_ptr<Staff>> workers;
-  /** Goście z configu — jeden wektor na rezerwację (unique_ptr: Guest jest abstrakcyjny). */
+  /** Goście z configu — jeden wektor na rezerwację (unique_ptr: Guest jest
+   * abstrakcyjny). */
   std::vector<std::vector<std::unique_ptr<Guest>>> guest_lists;
   std::vector<std::unique_ptr<Room>> rooms;
   std::vector<std::unique_ptr<Reservation>> reservations;
@@ -59,7 +58,6 @@ private:
   std::vector<PendingHousekeeping> pending_housekeeping;
   std::vector<PendingMaintenance> pending_maintenance;
 
-
   [[nodiscard]] bool has_pending_housekeeping(const Room *room) const;
 
 public:
@@ -81,9 +79,10 @@ public:
                                             unsigned int hour_of_day,
                                             unsigned int weekday_index);
   /** Zwraca pracownika, który dostał zadanie, albo nullptr. */
-  [[nodiscard]] Staff *assign_first_available_staff(
-      StaffRole role, const Task &task, unsigned int hour_of_day,
-      unsigned int weekday_index);
+  [[nodiscard]] Staff *assign_first_available_staff(StaffRole role,
+                                                    const Task &task,
+                                                    unsigned int hour_of_day,
+                                                    unsigned int weekday_index);
 
   void addRoom(std::unique_ptr<Room> room);
   void removeRoom(unsigned int roomNumber);
@@ -117,17 +116,22 @@ public:
 
   /** Kończy sprzątanie: gdy pokojówka skończyła CleanRoom → room.clean(). */
   void apply_completed_housekeeping();
-  [[nodiscard]] unsigned int
-  dispatch_housekeeping(unsigned int hour_of_day, unsigned int weekday_index);
+  [[nodiscard]] unsigned int dispatch_housekeeping(unsigned int hour_of_day,
+                                                   unsigned int weekday_index);
 
   [[nodiscard]] bool has_pending_maintenance() const;
-  /** Kończy naprawę: gdy konserwator skończył FixFailure → actual_failure = false. */
+  /** Kończy naprawę: gdy konserwator skończył FixFailure → actual_failure =
+   * false. */
   void apply_completed_maintenance();
   /** Przypisuje jednego konserwatora, jeśli awaria i brak pending. */
   [[nodiscard]] bool try_assign_maintenance(unsigned int hour_of_day,
                                             unsigned int weekday_index);
 
   std::vector<std::unique_ptr<Guest>> &emplace_guest_list();
+
+  void
+  remove_reservation(std::vector<std::unique_ptr<Reservation>>::iterator it,
+                     std::chrono::sys_days today);
 };
 
 #endif

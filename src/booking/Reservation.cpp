@@ -42,7 +42,7 @@ Reservation::Reservation(const std::vector<std::unique_ptr<Guest>> &p,
 }
 
 bool Reservation::check_resolved(std::chrono::sys_days hotel_time) const {
-  if (hotel_time >= std::chrono::sys_days{check_out}) {
+  if (hotel_time == std::chrono::sys_days{check_out}) {
     return true;
   }
   return false;
@@ -118,7 +118,7 @@ void Reservation::cancel_by_hotel(std::chrono::sys_days hotel_time) {
   is_paid = true;
   if (hotel_time - std::chrono::sys_days{check_in} < std::chrono::days{1}) {
     for (const auto &guest : people) {
-      guest->reduce_satisfaction(10);
+      guest->reduce_satisfaction(1);
     }
   }
 }

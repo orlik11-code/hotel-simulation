@@ -122,8 +122,8 @@ Staff *Hotel::assign_first_available_staff(StaffRole role, const Task &task,
 bool Hotel::assign_first_available(StaffRole role, const Task &task,
                                    unsigned int hour_of_day,
                                    unsigned int weekday_index) {
-  return assign_first_available_staff(role, task, hour_of_day,
-                                      weekday_index) != nullptr;
+  return assign_first_available_staff(role, task, hour_of_day, weekday_index) !=
+         nullptr;
 }
 
 void Hotel::tick(unsigned int elapsed_minutes) {
@@ -240,7 +240,6 @@ bool Hotel::mark_room_dirty(unsigned int room_number) {
   return true;
 }
 
-
 bool Hotel::has_pending_housekeeping(const Room *room) const {
   if (room == nullptr) {
     return false;
@@ -253,8 +252,9 @@ bool Hotel::has_pending_housekeeping(const Room *room) const {
   return false;
 }
 
-HousekeepingStats Hotel::collect_housekeeping_stats(
-    unsigned int hour_of_day, unsigned int weekday_index) const {
+HousekeepingStats
+Hotel::collect_housekeeping_stats(unsigned int hour_of_day,
+                                  unsigned int weekday_index) const {
   HousekeepingStats stats;
   const Weekday wd = weekday_from_index(weekday_index);
   const Task clean_probe = Task::make_clean_room();
@@ -316,7 +316,6 @@ void Hotel::apply_completed_housekeeping() {
   }
 }
 
-
 unsigned int Hotel::dispatch_housekeeping(unsigned int hour_of_day,
                                           unsigned int weekday_index) {
   if (get_actual_failure()) {
@@ -347,8 +346,8 @@ unsigned int Hotel::dispatch_housekeeping(unsigned int hour_of_day,
     }
 
     const Task task = Task::make_clean_room();
-    Staff *keeper = assign_first_available_staff(
-        StaffRole::Housekeeper, task, hour_of_day, weekday_index);
+    Staff *keeper = assign_first_available_staff(StaffRole::Housekeeper, task,
+                                                 hour_of_day, weekday_index);
     if (keeper == nullptr) {
       break;
     }
@@ -409,4 +408,21 @@ bool Hotel::try_assign_maintenance(unsigned int hour_of_day,
 
   pending_maintenance.push_back({worker->get_uid()});
   return true;
+}
+
+void Hotel::remove_reservation(
+    std::vector<std::unique_ptr<Reservation>>::iterator it,
+    std::chrono::sys_days today) {
+  Reservation *res = it->get();
+
+  // Sprawdzenie, czy można bezpieczenie usunąć inaczej warningi o
+  // niezapłaconych rezerwacjach
+  if (res->check_has_begun(today) && !res->get_is_cancelled() &&
+      !res->is_checkout_settled()) {
+    std::cerr << "[WARNING] Deleting reservation for room "
+              << res->get_room().get_number() << " which has not been settled!"
+              << std::endl;
+  }
+
+  reservations.erase(it);
 }
