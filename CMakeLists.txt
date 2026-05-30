@@ -80,6 +80,8 @@ add_library(hotel_logic
         src/guests/VIP.cpp
         src/guests/Family.cpp
         src/guests/Business.cpp
+        include/logger/logger.hpp
+        include/logger/Logger.hpp
 )
 
 target_include_directories(hotel_logic PUBLIC include)
