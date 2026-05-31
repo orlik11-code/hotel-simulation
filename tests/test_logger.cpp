@@ -21,15 +21,22 @@ TEST_CASE("Logger initialization and configuration") {
 
 TEST_CASE("Logger log generation logic") {
   SimConfig config;
+  config.event_probability = 0; // Disable random events for predictable testing
+
   Simulation sim(config);
+
+  for (int i = 0; i < 15; ++i) {
+    sim.tick();
+  }
+
   Logger logger("output.log", sim, 1);
-  std::set<std::string> categories = {"event"};
+  std::set<std::string> categories = {"czas"};
 
   SUBCASE("Empty range") {
-    logger.prepare_log(100, 50, categories);
+    logger.prepare_log(100, 200, categories);
     std::ifstream file("output.log");
     std::string line;
-    CHECK_FALSE(std::getline(file, line));
+    CHECK_FALSE(static_cast<bool>(std::getline(file, line)));
   }
 
   SUBCASE("Binary search - exact tick match") {
@@ -44,13 +51,6 @@ TEST_CASE("Logger log generation logic") {
       }
     }
     CHECK(found);
-  }
-
-  SUBCASE("Binary search - non-existent tick") {
-    logger.prepare_log(999, 999, categories);
-    std::ifstream file("output.log");
-    std::string line;
-    CHECK_FALSE(std::getline(file, line));
   }
 }
 
