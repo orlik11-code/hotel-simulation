@@ -197,7 +197,7 @@ void Hotel::cancel_reservation(Reservation *reservation,
   const bool free_cancel =
       before_stay && days_until_checkin > std::chrono::days{2};
 
-  reservation->cancel(hotel_time);
+  reservation->cancel_by_hotel(hotel_time); // to check!
 
   if (!free_cancel && (before_stay || during_stay)) {
     const Bill bill(*reservation);
