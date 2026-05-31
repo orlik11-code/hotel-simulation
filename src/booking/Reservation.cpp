@@ -24,13 +24,14 @@ std::chrono::days
 has already paid, then exception will be thrown.
 
 */
-Reservation::Reservation(const std::vector<std::unique_ptr<Guest>> &p,
+Reservation::Reservation(std::vector<std::unique_ptr<Guest>> p,
                          const Room *requested_room,
                          std::chrono::year_month_day c_in,
                          std::chrono::year_month_day c_out, bool food_included,
                          unsigned int food_price)
-    : check_in(c_in), check_out(c_out), room(requested_room), people(p),
-      food_included(food_included), food_price(food_price) {
+    : check_in(c_in), check_out(c_out), room(requested_room),
+      people(std::move(p)), food_included(food_included),
+      food_price(food_price) {
   if (room == nullptr) {
     throw std::invalid_argument(
         "Room must not be nullptr to make a reservation.");
@@ -134,3 +135,11 @@ void Reservation::mark_checked_in() { checked_in = true; }
 void Reservation::mark_checkout_settled() { checkout_settled = true; }
 
 void Reservation::set_payment_no_effort() { is_paid = true; }
+
+void Reservation::penalize_waiting_guests(int points) {
+  for (const auto &guest : people) {
+    if (guest) {
+      guest->reduce_satisfaction(points);
+    }
+  }
+}

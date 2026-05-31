@@ -12,7 +12,7 @@
 
 class Reservation {
 public:
-  Reservation(const std::vector<std::unique_ptr<Guest>> &p, const Room *r,
+  Reservation(std::vector<std::unique_ptr<Guest>> p, const Room *r,
               std::chrono::year_month_day check_in,
               std::chrono::year_month_day check_out, bool food_included,
               unsigned int food_price);
@@ -41,6 +41,8 @@ public:
   void mark_checkout_settled();
   void set_payment_no_effort();
 
+  void penalize_waiting_guests(int points);
+
   ~Reservation() = default;
 
 private:
@@ -48,7 +50,7 @@ private:
   std::chrono::sys_days check_out;
   bool check_out_request = false;
   const Room *room;
-  const std::vector<std::unique_ptr<Guest>> &people;
+  const std::vector<std::unique_ptr<Guest>> people;
   std::chrono::days nights;
   bool is_paid = false;
   bool payment_no_effort = false;

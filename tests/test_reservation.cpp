@@ -18,7 +18,7 @@ TEST_CASE("Reservation creation and basic properties") {
   std::chrono::year_month_day check_out{
       std::chrono::year(2026), std::chrono::month(5), std::chrono::day(4)};
 
-  Reservation res(guests, &room, check_in, check_out, true, 50);
+  Reservation res(std::move(guests), &room, check_in, check_out, true, 50);
 
   CHECK(res.get_people().size() == 2);
   CHECK(res.get_room().get_number() == 101);
@@ -37,7 +37,7 @@ TEST_CASE("Reservation nights calculation") {
   std::chrono::year_month_day check_out{
       std::chrono::year(2026), std::chrono::month(5), std::chrono::day(15)};
 
-  Reservation res(guests, &room, check_in, check_out, false, 0);
+  Reservation res(std::move(guests), &room, check_in, check_out, false, 0);
 
   CHECK(res.get_nights() == std::chrono::days(5));
 }
@@ -52,7 +52,7 @@ TEST_CASE("Reservation payment state") {
   std::chrono::year_month_day check_out{
       std::chrono::year(2026), std::chrono::month(5), std::chrono::day(3)};
 
-  Reservation res(guests, &room, check_in, check_out, true, 40);
+  Reservation res(std::move(guests), &room, check_in, check_out, true, 40);
 
   CHECK(res.get_is_paid() == false);
   res.proceed_payment();
@@ -70,7 +70,7 @@ TEST_CASE("Reservation check-in and check-out logic") {
   std::chrono::year_month_day check_out{
       std::chrono::year(2026), std::chrono::month(5), std::chrono::day(7)};
 
-  Reservation res(guests, &room, check_in, check_out, false, 0);
+  Reservation res(std::move(guests), &room, check_in, check_out, false, 0);
 
   auto check_in_sys = std::chrono::sys_days(check_in);
   auto check_out_sys = std::chrono::sys_days(check_out);
@@ -95,7 +95,7 @@ TEST_CASE("Reservation check-in settlement flags") {
   std::chrono::year_month_day check_out{
       std::chrono::year(2026), std::chrono::month(5), std::chrono::day(3)};
 
-  Reservation res(guests, &room, check_in, check_out, true, 50);
+  Reservation res(std::move(guests), &room, check_in, check_out, true, 50);
 
   CHECK(res.is_checked_in() == false);
   CHECK(res.is_checkout_settled() == false);
@@ -118,7 +118,7 @@ TEST_CASE("Reservation cancellation") {
   std::chrono::year_month_day check_out{
       std::chrono::year(2026), std::chrono::month(5), std::chrono::day(12)};
 
-  Reservation res(guests, &room, check_in, check_out, false, 0);
+  Reservation res(std::move(guests), &room, check_in, check_out, false, 0);
 
   CHECK(res.get_is_cancelled() == false);
   res.cancel_by_guest(std::chrono::sys_days(check_in));
