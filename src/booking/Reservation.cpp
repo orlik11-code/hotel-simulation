@@ -28,10 +28,21 @@ Reservation::Reservation(std::vector<std::unique_ptr<Guest>> p,
                          const Room *requested_room,
                          std::chrono::year_month_day c_in,
                          std::chrono::year_month_day c_out, bool food_included,
-                         unsigned int food_price)
+                         unsigned int food_price, unsigned int hour_check_in,
+                         unsigned int minute_check_in,
+                         unsigned int hour_check_out,
+                         unsigned int minute_check_out)
     : check_in(c_in), check_out(c_out), room(requested_room),
       people(std::move(p)), food_included(food_included),
-      food_price(food_price) {
+      food_price(food_price), hour_check_in(hour_check_in),
+      minute_check_in(minute_check_in), hour_check_out(hour_check_out),
+      minute_check_out(minute_check_out) {
+  if (hour_check_in > 23 || minute_check_in > 59 || hour_check_out > 23 ||
+      minute_check_out > 59) {
+    throw std::invalid_argument(
+        "Check in and check out times must be valid (0-23 for hours, 0-59 for "
+        "minutes).");
+  }
   if (room == nullptr) {
     throw std::invalid_argument(
         "Room must not be nullptr to make a reservation.");
@@ -143,3 +154,11 @@ void Reservation::penalize_waiting_guests(int points) {
     }
   }
 }
+
+int Reservation::get_hour_check_in() const { return hour_check_in; }
+
+int Reservation::get_minute_check_in() const { return minute_check_in; }
+
+int Reservation::get_hour_check_out() const { return hour_check_out; }
+
+int Reservation::get_minute_check_out() const { return minute_check_out; }

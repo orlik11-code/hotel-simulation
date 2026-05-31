@@ -15,7 +15,9 @@ public:
   Reservation(std::vector<std::unique_ptr<Guest>> p, const Room *r,
               std::chrono::year_month_day check_in,
               std::chrono::year_month_day check_out, bool food_included,
-              unsigned int food_price);
+              unsigned int food_price, unsigned int hour_check_in = 12,
+              unsigned int minute_check_in = 0, unsigned int hour_check_out = 7,
+              unsigned int minute_check_out = 30);
   const std::vector<std::unique_ptr<Guest>> &get_people() const;
   const Room &get_room() const;
   std::chrono::days get_nights() const;
@@ -42,6 +44,10 @@ public:
   void set_payment_no_effort();
 
   void penalize_waiting_guests(int points);
+  int get_hour_check_in() const;
+  int get_minute_check_in() const;
+  int get_hour_check_out() const;
+  int get_minute_check_out() const;
 
   ~Reservation() = default;
 
@@ -59,6 +65,10 @@ private:
   bool cancelled = false;
   bool checked_in = false;
   bool checkout_settled = false;
+  unsigned int hour_check_in;
+  unsigned int minute_check_in;
+  unsigned int hour_check_out;
+  unsigned int minute_check_out;
 };
 
 #endif // PROI_HOTEL_SYSTEM_MANAGEMENT_RESERVATION_H
