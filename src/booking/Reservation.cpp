@@ -132,3 +132,5 @@ bool Reservation::is_checkout_settled() const { return checkout_settled; }
 void Reservation::mark_checked_in() { checked_in = true; }
 
 void Reservation::mark_checkout_settled() { checkout_settled = true; }
+
+void Reservation::set_payment_no_effort() { is_paid = true; }

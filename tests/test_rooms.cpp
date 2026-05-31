@@ -2,7 +2,6 @@
 // Created by orlik on 4.05.2026.
 //
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "../include/doctest.h"
 #include "../include/hotel/Hotel.h"
 #include "../include/rooms/Apartment.h"

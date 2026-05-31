@@ -73,7 +73,9 @@ add_library(hotel_logic
     src/rooms/Apartment.cpp
     # simulation
     include/simulation/Simulation.hpp
+    include/simulation/simulation_rng.hpp
     src/simulation/Simulation.cpp
+    src/simulation/simulation_rng.cpp
     # staff
     include/staff/types.hpp
     include/staff/Staff.hpp
@@ -119,7 +121,7 @@ if (BUILD_TESTING)
     target_compile_options(Catch2WithMain PRIVATE -Wno-error)
 
     if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_staff.cpp")
-        add_executable(UnitTests
+        add_executable(Catch2Units
             tests/test_staff.cpp
             tests/test_config_loader.cpp
             tests/test_staff_loader.cpp
@@ -130,13 +132,21 @@ if (BUILD_TESTING)
             tests/test_maintenance.cpp
             tests/test_hotel_event.cpp
         )
-        target_link_libraries(UnitTests PRIVATE hotel_logic Catch2::Catch2WithMain)
-        add_test(NAME UnitTests COMMAND UnitTests)
+        target_link_libraries(Catch2Units PRIVATE hotel_logic Catch2::Catch2WithMain)
+        add_test(NAME Catch2Units COMMAND Catch2Units)
     endif ()
 
-    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/app/tests.cpp")
-        add_executable(PROI_tests app/tests.cpp)
-        target_link_libraries(PROI_tests hotel_logic Catch2::Catch2WithMain)
-        add_test(NAME PROI_tests COMMAND PROI_tests)
+    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_bill.cpp")
+        add_executable(DoctestUnits
+            tests/test_bill.cpp
+            tests/test_logger.cpp
+            tests/test_rooms.cpp
+            tests/test_reservation.cpp
+            tests/test_guests.cpp
+            tests/test_events.cpp
+        )
+        target_include_directories(DoctestUnits PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+        target_link_libraries(DoctestUnits PRIVATE hotel_logic)
+        add_test(NAME DoctestUnits COMMAND DoctestUnits)
     endif ()
 endif ()
