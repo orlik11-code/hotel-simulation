@@ -11,25 +11,6 @@
 #include <stdexcept>
 #include <string>
 
-namespace {
-
-constexpr unsigned int kFailureDestroyAfterMinutes = 40U;
-constexpr unsigned int kCheckOutHour = 8U;
-constexpr unsigned int kCheckInHour = 11U;
-
-/** Maps std::chrono weekday to simulation index (0 = Monday, 6 = Sunday). */
-[[nodiscard]] unsigned int
-weekday_index_from_sys_days(std::chrono::sys_days day) {
-  const std::chrono::weekday wd{day};
-  const unsigned int c = wd.c_encoding();
-  if (c == 0U) {
-    return 6U;
-  }
-  return c - 1U;
-}
-
-} // namespace
-
 Simulation::Simulation(const SimConfig &new_sim_config)
     : hotel_(), config_(new_sim_config), current_tick_(0U), is_running_(true),
       time_with_fail_(0U), event_generator_(std::make_unique<EventGenerator>(
@@ -622,61 +603,13 @@ void Simulation::run() {
             "Koniec po " + std::to_string(current_tick_) + " tickach.");
 }
 
-unsigned int Simulation::get_current_tick() const noexcept {
-  return current_tick_;
-}
 
-unsigned int Simulation::days_elapsed() const noexcept {
-  if (current_tick_ == 0U) {
-    return 0U;
-  }
-  return (current_tick_ - 1U) / config_.ticsPerDay;
-}
 
-std::chrono::sys_days Simulation::actual_date() const noexcept {
-  return get_actual_date(days_elapsed());
-}
 
-unsigned int Simulation::minutes_from_midnight() const noexcept {
-  if (current_tick_ == 0U) {
-    return 0U;
-  }
-  const unsigned int slot_in_day = (current_tick_ - 1U) % config_.ticsPerDay;
-  return slot_in_day * config_.minutesPerTick;
-}
 
-std::string Simulation::format_virtual_time() const {
-  const unsigned int total_minutes = minutes_from_midnight();
-  const unsigned int hour = (total_minutes / 60U) % 24U;
-  const unsigned int minute = total_minutes % 60U;
 
-  std::ostringstream out;
-  if (config_.date_start.ok()) {
-    const std::chrono::year_month_day ymd{actual_date()};
-    out << std::setfill('0') << static_cast<int>(ymd.year()) << '-'
-        << std::setw(2) << static_cast<unsigned>(ymd.month()) << '-'
-        << std::setw(2) << static_cast<unsigned>(ymd.day());
-  } else {
-    out << "dzien-" << days_elapsed();
-  }
-  out << ' ' << std::setw(2) << hour << ':' << std::setw(2) << minute;
-  return out.str();
-}
 
-unsigned int Simulation::hour_of_day() const noexcept {
-  return (minutes_from_midnight() / 60U) % 24U;
-}
 
-unsigned int Simulation::minutes_of_hour() const noexcept {
-  return minutes_from_midnight() % 60U;
-}
-
-unsigned int Simulation::weekday() const noexcept {
-  if (!config_.date_start.ok()) {
-    return days_elapsed() % 7U;
-  }
-  return weekday_index_from_sys_days(actual_date());
-}
 
 std::chrono::sys_days
 Simulation::get_actual_date(unsigned int days_elapsed) const noexcept {
