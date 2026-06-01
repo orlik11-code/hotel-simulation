@@ -1,5 +1,7 @@
 #include "simulation/Simulation.hpp"
 
+#include "simulation/HotelReport.h"
+
 #include "booking/Reservation.h"
 #include "simulation/simulation_rng.hpp"
 #include "staff/types.hpp"
@@ -175,20 +177,61 @@ void Simulation::run() {
             "Koniec po " + std::to_string(current_tick_) + " tickach.");
 }
 
+HotelReport Simulation::build_hotel_report() const {
+  HotelReport report;
+  report.balance = hotel_.get_balance();
 
+  unsigned long long satisfaction_sum = 0U;
+  unsigned int guest_count = 0U;
 
+  for (Reservation *reservation : hotel_.get_reservations()) {
+    if (reservation == nullptr || reservation->get_is_cancelled()) {
+      continue;
+    }
+    for (const std::unique_ptr<Guest> &guest : reservation->get_people()) {
+      if (guest == nullptr) {
+        continue;
+      }
+      const int satisfaction = guest->get_satisfaction();
+      satisfaction_sum +=
+          static_cast<unsigned long long>(satisfaction > 0 ? satisfaction : 0);
+      ++guest_count;
+    }
+  }
 
+  report.guest_count = guest_count;
+  if (guest_count == 0U) {
+    report.average_satisfaction = 0U;
+    report.rating_label = "slaby";
+    return report;
+  }
 
+  report.average_satisfaction =
+      static_cast<unsigned int>(satisfaction_sum / guest_count);
 
+  if (report.average_satisfaction >= 80U) {
+    report.rating_label = "bardzo_dobry";
+  } else if (report.average_satisfaction >= 60U) {
+    report.rating_label = "dobry";
+  } else if (report.average_satisfaction >= 40U) {
+    report.rating_label = "sredni";
+  } else {
+    report.rating_label = "slaby";
+  }
 
-
-
-std::chrono::sys_days
-Simulation::get_actual_date(unsigned int days_elapsed) const noexcept {
-  return std::chrono::sys_days{config_.date_start} +
-         std::chrono::days{static_cast<int>(days_elapsed)};
+  return report;
 }
 
-unsigned int Simulation::minutes_per_tick() const noexcept {
-  return config_.minutesPerTick;
+void Simulation::refresh_hotel_report() { hotel_report_ = build_hotel_report(); }
+
+const HotelReport &Simulation::get_hotel_report() const noexcept {
+  return hotel_report_;
+}
+
+void Simulation::publish_hotel_report() const {
+  const HotelReport &report = get_hotel_report();
+  std::cout << "RAPORT: saldo=" << report.balance
+            << " gosci=" << report.guest_count
+            << " srednia_satysfakcja=" << report.average_satisfaction
+            << " ocena=" << report.rating_label << '\n';
 }

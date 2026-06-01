@@ -72,15 +72,17 @@ add_library(hotel_logic
     src/rooms/TripleRoom.cpp
     src/rooms/Apartment.cpp
     # simulation
+    include/simulation/SimConfig.hpp
+    include/simulation/SimulationTypes.hpp
     include/simulation/Simulation.hpp
     include/simulation/simulation_rng.hpp
     src/simulation/Simulation.cpp
-    src/simulation/simulation_rng.cpp
     src/simulation/SimulationTime.cpp
     src/simulation/SimulationEvents.cpp
-    src/simulation/SimulationHousekeeping.cpp
     src/simulation/SimulationReception.cpp
     src/simulation/SimulationMeals.cpp
+    src/simulation/SimulationHousekeeping.cpp
+    src/simulation/simulation_rng.cpp
     # staff
     include/staff/types.hpp
     include/staff/Staff.hpp
@@ -137,6 +139,7 @@ if (BUILD_TESTING)
             tests/test_maintenance.cpp
             tests/test_hotel_event.cpp
             tests/test_meal_dispatch.cpp
+                include/simulation/HotelReport.h
         )
         target_link_libraries(Catch2Units PRIVATE hotel_logic Catch2::Catch2WithMain)
         add_test(NAME Catch2Units COMMAND Catch2Units)
