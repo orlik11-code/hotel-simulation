@@ -55,45 +55,7 @@ void Simulation::apply_guest_satisfaction_penalty(Reservation *reservation,
   // TODO zadowolenie: reservation->penalize_guests(penalty_points) (API Konrada).
 }
 
-bool Simulation::should_run_daily_dirty(
-    unsigned int hour_of_day, std::chrono::sys_days today) const {
-  if (hour_of_day < hotel_.get_hotel_hour_start()) {
-    return false;
-  }
-  if (last_daily_dirty_date_.has_value() && *last_daily_dirty_date_ == today) {
-    return false;
-  }
-  return true;
-}
 
-void Simulation::process_daily_dirty_rooms(std::chrono::sys_days today) {
-  unsigned int marked = 0U;
-
-  for (Reservation *reservation : hotel_.get_reservations()) {
-    if (reservation == nullptr || reservation->get_is_cancelled()) {
-      continue;
-    }
-
-    const bool active_stay =
-        reservation->check_has_begun(today) &&
-        !reservation->check_resolved(today);
-    const bool checkout_today = reservation->get_check_out() == today;
-
-    if (!active_stay && !checkout_today) {
-      continue;
-    }
-
-    if (hotel_.mark_room_dirty(reservation->get_room().get_number())) {
-      ++marked;
-    }
-  }
-
-  last_daily_dirty_date_ = today;
-  std::ostringstream msg;
-  msg << "Dzienny reset o " << hotel_.get_hotel_hour_start()
-      << ":00 — oznaczono " << marked << " pokoi jako brudne.";
-  log_event(sim_event_category::sprzatanie, msg.str());
-}
 
 bool Simulation::has_pending_reception(Reservation *reservation) const {
   if (reservation == nullptr) {
