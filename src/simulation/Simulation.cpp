@@ -47,26 +47,6 @@ void Simulation::set_config(const SimConfig &sim_config) {
       std::make_unique<EventGenerator>(hotel_, config_.event_probability);
 }
 
-void Simulation::try_fix_failure() {
-  if (hotel_.has_pending_maintenance()) {
-    time_with_fail_ += config_.minutesPerTick;
-    if (time_with_fail_ >= kFailureDestroyAfterMinutes) {
-      throw std::runtime_error("Hotel has been destroyed");
-    }
-    return;
-  }
-
-  if (hotel_.try_assign_maintenance(hour_of_day(), weekday())) {
-    log_event(sim_event_category::awaria,
-              "Przypisano konserwatora do naprawy awarii.");
-    return;
-  }
-
-  time_with_fail_ += config_.minutesPerTick;
-  if (time_with_fail_ >= kFailureDestroyAfterMinutes) {
-    throw std::runtime_error("Hotel has been destroyed");
-  }
-}
 
 void Simulation::apply_guest_satisfaction_penalty(Reservation *reservation,
                                                   int penalty_points) {
@@ -239,35 +219,7 @@ void Simulation::schedule_check_in_and_check_out(unsigned int hour, unsigned int
   // ticków bez completion — dodatkowa kara; trzymać licznik ticków w PendingReceptionTask.
 }
 
-void Simulation::schedule_cancellation(Reservation *reservation) {
-  if (reservation == nullptr) {
-    return;
-  }
-  pending_cancellations_.push_back(reservation);
-}
 
-void Simulation::process_cancellations() {
-  for (Reservation *reservation : pending_cancellations_) {
-    hotel_.cancel_reservation(reservation, actual_date());
-  }
-  pending_cancellations_.clear();
-}
-
-namespace {
-
-[[nodiscard]] const char *meal_type_label(MealType type) {
-  return type == MealType::breakfast ? "breakfast" : "dinner";
-}
-
-[[nodiscard]] bool reservation_eligible_for_meal(Reservation *reservation,
-                                                 std::chrono::sys_days today) {
-  return reservation != nullptr && !reservation->get_is_cancelled() &&
-         reservation->get_food_included() &&
-         reservation->check_has_begun(today) &&
-         !reservation->check_resolved(today);
-}
-
-} // namespace
 
 std::optional<MealType> Simulation::current_meal_slot(unsigned int hour) const {
   for (const MealServiceWindow &window : config_.meal_windows) {

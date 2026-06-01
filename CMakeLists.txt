@@ -77,6 +77,7 @@ add_library(hotel_logic
     src/simulation/Simulation.cpp
     src/simulation/simulation_rng.cpp
     src/simulation/SimulationTime.cpp
+    src/simulation/SimulationEvents.cpp
     # staff
     include/staff/types.hpp
     include/staff/Staff.hpp
