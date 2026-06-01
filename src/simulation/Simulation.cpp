@@ -1,35 +1,28 @@
 #include "simulation/Simulation.hpp"
 
-#include "simulation/HotelReport.h"
-
-#include "booking/Reservation.h"
-#include "simulation/simulation_rng.hpp"
-#include "staff/types.hpp"
-
-#include <chrono>
-#include <iomanip>
 #include <iostream>
 #include <sstream>
-#include <stdexcept>
 #include <string>
+
+#include "simulation/HotelReport.h"
 
 Simulation::Simulation(const SimConfig &new_sim_config)
     : hotel_(), config_(new_sim_config), current_tick_(0U), is_running_(true),
-      time_with_fail_(0U), event_generator_(std::make_unique<EventGenerator>(
-                              hotel_, config_.event_probability)) {}
+      time_with_fail_(0U),
+      event_generator_(std::make_unique<EventGenerator>(
+          hotel_, config_.event_probability)) {}
 
 Hotel &Simulation::get_hotel() { return hotel_; }
-// FLAG FLAG
+
 void Simulation::set_live_console_output(bool enabled) noexcept {
   live_console_output_ = enabled;
 }
 
 void Simulation::log_event(const std::string &category,
-                         const std::string &message) {
+                           const std::string &message) {
   event_log_[category].push_back(
       {message, static_cast<int>(current_tick_)});
 
-  // FLAG FLAG
   if (!live_console_output_) {
     return;
   }
@@ -49,97 +42,39 @@ void Simulation::set_config(const SimConfig &sim_config) {
       std::make_unique<EventGenerator>(hotel_, config_.event_probability);
 }
 
+void Simulation::tick_advance_hotel_clock() {
+  ++current_tick_;
+  hotel_.tick(config_.minutesPerTick);
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
+void Simulation::tick_log_time_step(unsigned int hour, unsigned int weekday) {
+  std::ostringstream msg;
+  msg << "Minal 1 tick (" << config_.minutesPerTick
+      << " min). Obecny tick: " << current_tick_ << " (godz. " << hour
+      << ", dzien_tygodnia " << weekday << ")";
+  log_event(sim_event_category::czas, msg.str());
+}
 
 void Simulation::tick() {
-  current_tick_++;
-  hotel_.tick(config_.minutesPerTick);
-
-  const bool had_failure = hotel_.get_actual_failure();
-  hotel_.apply_completed_maintenance();
-  if (had_failure && !hotel_.get_actual_failure()) {
-    time_with_fail_ = 0U;
-    if (active_event_ != nullptr) {
-      active_event_->clear();
-      active_event_.reset();
-    }
-    log_event(sim_event_category::awaria, "Awaria naprawiona.");
-  }
-
-  complete_pending_reception_tasks();
+  tick_advance_hotel_clock();
+  tick_resolve_maintenance();
+  tick_process_reception_queue();
 
   const unsigned int hour = hour_of_day();
   const unsigned int day = weekday();
 
-  if (hotel_.get_actual_failure()) {
-    try_fix_failure();
-  } else if (std::unique_ptr<HotelEvent> event =
-                 event_generator_->decide_what_happens()) {
-    active_event_ = std::move(event);
-    active_event_->apply();
-    log_event(sim_event_category::awaria,
-              std::string(active_event_->description()) +
-                  " (szansa " + std::to_string(config_.event_probability) +
-                  "%).");
-    try_fix_failure();
-  }
-
-  process_cancellations();
-
-  const std::chrono::sys_days today = actual_date();
-  if (should_run_daily_dirty(hour, today)) {
-    process_daily_dirty_rooms(today);
-  }
-
-  schedule_check_in_and_check_out(hour, day);
-
-  complete_pending_meal_tasks();
-  if (!hotel_.get_actual_failure() && !hotel_.get_evacuation()) {
-    if (const std::optional<MealType> slot = current_meal_slot(hour)) {
-      ensure_meal_attendance_plans(*slot, today);
-      dispatch_meals(*slot, hour, day);
-    }
-  }
-
-  hotel_.apply_completed_housekeeping();
-  if (!hotel_.get_actual_failure()) {
-    const HousekeepingStats hk_stats =
-        hotel_.collect_housekeeping_stats(hour, day);
-    const unsigned int hk_assigned =
-        hotel_.dispatch_housekeeping(hour, day);
-    if (hk_stats.dirty_rooms > 0U || hk_assigned > 0U) {
-      std::ostringstream msg;
-      msg << "brudne: " << hk_stats.dirty_rooms << ", w kolejce: "
-          << hk_stats.need_assignment
-          << ", pokojowki wolne: " << hk_stats.housekeepers_free
-          << ", przypisano: " << hk_assigned;
-      log_event(sim_event_category::sprzatanie, msg.str());
-    }
-  }
-
-  {
-    std::ostringstream msg;
-    msg << "Minal 1 tick (" << config_.minutesPerTick
-        << " min). Obecny tick: " << current_tick_ << " (godz. " << hour
-        << ", dzien_tygodnia " << day << ")";
-    log_event(sim_event_category::czas, msg.str());
-  }
+  tick_process_failures_and_random_events();
+  tick_process_pending_cancellations();
+  tick_mark_daily_dirty_rooms();
+  tick_schedule_reception_tasks(hour, day);
+  tick_process_meals(hour, day);
+  tick_dispatch_housekeeping(hour, day);
+  tick_log_time_step(hour, day);
+  refresh_hotel_report();
 }
 
 void Simulation::run() {
-
+  refresh_hotel_report();
 
   log_event(sim_event_category::symulacja,
             "Prawdopodobienstwo zdarzenia: " +
@@ -154,12 +89,13 @@ void Simulation::run() {
     is_running_ = false;
     log_event(sim_event_category::symulacja,
               "Koniec po " + std::to_string(current_tick_) + " tickach.");
-
+    publish_hotel_report();
     return;
   }
 
   log_event(sim_event_category::symulacja,
             "Start — Enter = kolejny tick, q = koniec.");
+
   while (is_running_) {
     std::cout << ">>> ";
     std::string cmd;
@@ -175,6 +111,8 @@ void Simulation::run() {
   }
   log_event(sim_event_category::symulacja,
             "Koniec po " + std::to_string(current_tick_) + " tickach.");
+
+  publish_hotel_report();
 }
 
 HotelReport Simulation::build_hotel_report() const {
