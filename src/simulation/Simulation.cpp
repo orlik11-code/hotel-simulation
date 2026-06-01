@@ -31,11 +31,11 @@ weekday_index_from_sys_days(std::chrono::sys_days day) {
 } // namespace
 
 Simulation::Simulation(const SimConfig &new_sim_config)
-    : hotel(), config(new_sim_config), current_tick(0U), is_running(true),
-      time_with_fail(0U), event_generator(std::make_unique<EventGenerator>(
-                              hotel, config.event_probability)) {}
+    : hotel_(), config_(new_sim_config), current_tick_(0U), is_running_(true),
+      time_with_fail_(0U), event_generator_(std::make_unique<EventGenerator>(
+                              hotel_, config_.event_probability)) {}
 
-Hotel &Simulation::get_hotel() { return hotel; }
+Hotel &Simulation::get_hotel() { return hotel_; }
 // FLAG FLAG
 void Simulation::set_live_console_output(bool enabled) noexcept {
   live_console_output_ = enabled;
@@ -44,7 +44,7 @@ void Simulation::set_live_console_output(bool enabled) noexcept {
 void Simulation::log_event(const std::string &category,
                          const std::string &message) {
   event_log_[category].push_back(
-      {message, static_cast<int>(current_tick)});
+      {message, static_cast<int>(current_tick_)});
 
   // FLAG FLAG
   if (!live_console_output_) {
@@ -61,28 +61,28 @@ const SimEventLog &Simulation::get_event_log() const noexcept {
 }
 
 void Simulation::set_config(const SimConfig &sim_config) {
-  config = sim_config;
-  event_generator =
-      std::make_unique<EventGenerator>(hotel, config.event_probability);
+  config_ = sim_config;
+  event_generator_ =
+      std::make_unique<EventGenerator>(hotel_, config_.event_probability);
 }
 
 void Simulation::try_fix_failure() {
-  if (hotel.has_pending_maintenance()) {
-    time_with_fail += config.minutesPerTick;
-    if (time_with_fail >= kFailureDestroyAfterMinutes) {
+  if (hotel_.has_pending_maintenance()) {
+    time_with_fail_ += config_.minutesPerTick;
+    if (time_with_fail_ >= kFailureDestroyAfterMinutes) {
       throw std::runtime_error("Hotel has been destroyed");
     }
     return;
   }
 
-  if (hotel.try_assign_maintenance(hour_of_day(), weekday())) {
+  if (hotel_.try_assign_maintenance(hour_of_day(), weekday())) {
     log_event(sim_event_category::awaria,
               "Przypisano konserwatora do naprawy awarii.");
     return;
   }
 
-  time_with_fail += config.minutesPerTick;
-  if (time_with_fail >= kFailureDestroyAfterMinutes) {
+  time_with_fail_ += config_.minutesPerTick;
+  if (time_with_fail_ >= kFailureDestroyAfterMinutes) {
     throw std::runtime_error("Hotel has been destroyed");
   }
 }
@@ -96,10 +96,10 @@ void Simulation::apply_guest_satisfaction_penalty(Reservation *reservation,
 
 bool Simulation::should_run_daily_dirty(
     unsigned int hour_of_day, std::chrono::sys_days today) const {
-  if (hour_of_day < hotel.get_hotel_hour_start()) {
+  if (hour_of_day < hotel_.get_hotel_hour_start()) {
     return false;
   }
-  if (last_daily_dirty_date.has_value() && *last_daily_dirty_date == today) {
+  if (last_daily_dirty_date_.has_value() && *last_daily_dirty_date_ == today) {
     return false;
   }
   return true;
@@ -108,7 +108,7 @@ bool Simulation::should_run_daily_dirty(
 void Simulation::process_daily_dirty_rooms(std::chrono::sys_days today) {
   unsigned int marked = 0U;
 
-  for (Reservation *reservation : hotel.get_reservations()) {
+  for (Reservation *reservation : hotel_.get_reservations()) {
     if (reservation == nullptr || reservation->get_is_cancelled()) {
       continue;
     }
@@ -122,14 +122,14 @@ void Simulation::process_daily_dirty_rooms(std::chrono::sys_days today) {
       continue;
     }
 
-    if (hotel.mark_room_dirty(reservation->get_room().get_number())) {
+    if (hotel_.mark_room_dirty(reservation->get_room().get_number())) {
       ++marked;
     }
   }
 
-  last_daily_dirty_date = today;
+  last_daily_dirty_date_ = today;
   std::ostringstream msg;
-  msg << "Dzienny reset o " << hotel.get_hotel_hour_start()
+  msg << "Dzienny reset o " << hotel_.get_hotel_hour_start()
       << ":00 — oznaczono " << marked << " pokoi jako brudne.";
   log_event(sim_event_category::sprzatanie, msg.str());
 }
@@ -138,7 +138,7 @@ bool Simulation::has_pending_reception(Reservation *reservation) const {
   if (reservation == nullptr) {
     return false;
   }
-  for (const PendingReceptionTask &pending : pending_reception) {
+  for (const PendingReceptionTask &pending : pending_reception_) {
     if (pending.reservation == reservation) {
       return true;
     }
@@ -146,18 +146,18 @@ bool Simulation::has_pending_reception(Reservation *reservation) const {
   return false;
 }
 
-void Simulation::process_reception_completions() {
-  auto it = pending_reception.begin();
-  while (it != pending_reception.end()) {
+void Simulation::complete_pending_reception_tasks() {
+  auto it = pending_reception_.begin();
+  while (it != pending_reception_.end()) {
     if (it->reservation == nullptr ||
         it->reservation->get_is_cancelled()) {
-      it = pending_reception.erase(it);
+      it = pending_reception_.erase(it);
       continue;
     }
 
-    Staff *worker = hotel.find_by_uid(it->worker_uid);
+    Staff *worker = hotel_.find_by_uid(it->worker_uid);
     if (worker == nullptr) {
-      it = pending_reception.erase(it);
+      it = pending_reception_.erase(it);
       continue;
     }
 
@@ -176,7 +176,7 @@ void Simulation::process_reception_completions() {
     const unsigned int room_nr =
         it->reservation->get_room().get_number();
     if (it->is_checkout) {
-      hotel.complete_checkout(it->reservation);
+      hotel_.complete_checkout(it->reservation);
       it->reservation->mark_checkout_settled();
       log_event(sim_event_category::checkout,
                 "Wymeldowano pokoj nr " + std::to_string(room_nr));
@@ -186,18 +186,18 @@ void Simulation::process_reception_completions() {
                 "Zameldowano pokoj nr " + std::to_string(room_nr));
     }
 
-    it = pending_reception.erase(it);
+    it = pending_reception_.erase(it);
   }
 }
 
-void Simulation::check_checkout(unsigned int hour, unsigned int day) {
-  if (hotel.get_actual_failure()) {
+void Simulation::schedule_check_in_and_check_out(unsigned int hour, unsigned int day) {
+  if (hotel_.get_actual_failure()) {
     return;
   }
 
   const std::chrono::sys_days today = actual_date();
 
-  for (Reservation *reservation : hotel.get_reservations()) {
+  for (Reservation *reservation : hotel_.get_reservations()) {
     if (reservation == nullptr || reservation->get_is_cancelled()) {
       continue;
     }
@@ -208,10 +208,10 @@ void Simulation::check_checkout(unsigned int hour, unsigned int day) {
     if (hour == kCheckInHour && checkin_today && !reservation->is_checked_in() &&
         !has_pending_reception(reservation)) {
       const Task reception_task = Task::make_check_in();
-      Staff *receptionist = hotel.assign_first_available_staff(
+      Staff *receptionist = hotel_.assign_first_available_staff(
           StaffRole::Receptionist, reception_task, hour, day);
       if (receptionist != nullptr) {
-        pending_reception.push_back(
+        pending_reception_.push_back(
             PendingReceptionTask{reservation, false, receptionist->get_uid()});
         log_event(sim_event_category::check_in,
                   "Przypisano recepcjonistke " +
@@ -237,10 +237,10 @@ void Simulation::check_checkout(unsigned int hour, unsigned int day) {
         !reservation->is_checkout_settled() &&
         !has_pending_reception(reservation)) {
       const Task reception_task = Task::make_check_in();
-      Staff *receptionist = hotel.assign_first_available_staff(
+      Staff *receptionist = hotel_.assign_first_available_staff(
           StaffRole::Receptionist, reception_task, hour, day);
       if (receptionist != nullptr) {
-        pending_reception.push_back(
+        pending_reception_.push_back(
             PendingReceptionTask{reservation, true, receptionist->get_uid()});
         log_event(sim_event_category::checkout,
                   "Przypisano recepcjonistke " +
@@ -254,7 +254,7 @@ void Simulation::check_checkout(unsigned int hour, unsigned int day) {
     }
   }
 
-  // TODO zadowolenie (opcjonalnie): rezerwacje w pending_reception już dłużej niż N
+  // TODO zadowolenie (opcjonalnie): rezerwacje w pending_reception_ już dłużej niż N
   // ticków bez completion — dodatkowa kara; trzymać licznik ticków w PendingReceptionTask.
 }
 
@@ -262,14 +262,14 @@ void Simulation::schedule_cancellation(Reservation *reservation) {
   if (reservation == nullptr) {
     return;
   }
-  pending_cancellations.push_back(reservation);
+  pending_cancellations_.push_back(reservation);
 }
 
 void Simulation::process_cancellations() {
-  for (Reservation *reservation : pending_cancellations) {
-    hotel.cancel_reservation(reservation, actual_date());
+  for (Reservation *reservation : pending_cancellations_) {
+    hotel_.cancel_reservation(reservation, actual_date());
   }
-  pending_cancellations.clear();
+  pending_cancellations_.clear();
 }
 
 namespace {
@@ -289,7 +289,7 @@ namespace {
 } // namespace
 
 std::optional<MealType> Simulation::current_meal_slot(unsigned int hour) const {
-  for (const MealServiceWindow &window : config.meal_windows) {
+  for (const MealServiceWindow &window : config_.meal_windows) {
     if (hour >= window.start_hour && hour < window.end_hour) {
       return window.type;
     }
@@ -299,7 +299,7 @@ std::optional<MealType> Simulation::current_meal_slot(unsigned int hour) const {
 
 const MealServiceWindow *
 Simulation::find_meal_window(MealType meal_type) const noexcept {
-  for (const MealServiceWindow &window : config.meal_windows) {
+  for (const MealServiceWindow &window : config_.meal_windows) {
     if (window.type == meal_type) {
       return &window;
     }
@@ -369,7 +369,7 @@ void Simulation::ensure_meal_attendance_plans(MealType slot,
     return;
   }
 
-  for (Reservation *reservation : hotel.get_reservations()) {
+  for (Reservation *reservation : hotel_.get_reservations()) {
     if (!reservation_eligible_for_meal(reservation, today)) {
       continue;
     }
@@ -383,7 +383,7 @@ void Simulation::ensure_meal_attendance_plans(MealType slot,
     plan.reservation = reservation;
     plan.meal_type = slot;
     plan.day = today;
-    plan.will_attend = random_chance(config.meal_attendance_percent);
+    plan.will_attend = random_chance(config_.meal_attendance_percent);
 
     if (plan.will_attend) {
       plan.planned_arrival_hour =
@@ -399,7 +399,7 @@ void Simulation::ensure_meal_attendance_plans(MealType slot,
   }
 }
 
-void Simulation::process_meal_completions() {
+void Simulation::complete_pending_meal_tasks() {
   const std::chrono::sys_days today = actual_date();
   auto it = pending_meals_.begin();
   while (it != pending_meals_.end()) {
@@ -409,7 +409,7 @@ void Simulation::process_meal_completions() {
     }
 
     Staff *worker =
-        it->worker_uid == 0U ? nullptr : hotel.find_by_uid(it->worker_uid);
+        it->worker_uid == 0U ? nullptr : hotel_.find_by_uid(it->worker_uid);
     if (worker != nullptr && worker->get_is_busy()) {
       ++it;
       continue;
@@ -449,13 +449,13 @@ void Simulation::process_meal_completions() {
 
 void Simulation::dispatch_meals(MealType slot, unsigned int hour,
                                 unsigned int day) {
-  if (hotel.get_actual_failure() || hotel.get_evacuation()) {
+  if (hotel_.get_actual_failure() || hotel_.get_evacuation()) {
     return;
   }
 
   const std::chrono::sys_days today = actual_date();
 
-  for (Reservation *reservation : hotel.get_reservations()) {
+  for (Reservation *reservation : hotel_.get_reservations()) {
     if (!reservation_eligible_for_meal(reservation, today)) {
       continue;
     }
@@ -474,7 +474,7 @@ void Simulation::dispatch_meals(MealType slot, unsigned int hour,
 
     if (!has_pending_meal(reservation, slot)) {
       const Task cook_task = Task::make_cook_meal();
-      Staff *chef = hotel.assign_first_available_staff(StaffRole::Chef, cook_task,
+      Staff *chef = hotel_.assign_first_available_staff(StaffRole::Chef, cook_task,
                                                        hour, day);
       if (chef != nullptr) {
         pending_meals_.push_back(PendingMealTask{
@@ -494,7 +494,7 @@ void Simulation::dispatch_meals(MealType slot, unsigned int hour,
       }
 
       const Task serve_task = Task::make_serve_meal();
-      Staff *waiter = hotel.assign_first_available_staff(
+      Staff *waiter = hotel_.assign_first_available_staff(
           StaffRole::Waiter, serve_task, hour, day);
       if (waiter != nullptr) {
         pending.worker_uid = waiter->get_uid();
@@ -509,13 +509,13 @@ void Simulation::dispatch_meals(MealType slot, unsigned int hour,
 }
 
 void Simulation::tick() {
-  current_tick++;
-  hotel.tick(config.minutesPerTick);
+  current_tick_++;
+  hotel_.tick(config_.minutesPerTick);
 
-  const bool had_failure = hotel.get_actual_failure();
-  hotel.apply_completed_maintenance();
-  if (had_failure && !hotel.get_actual_failure()) {
-    time_with_fail = 0U;
+  const bool had_failure = hotel_.get_actual_failure();
+  hotel_.apply_completed_maintenance();
+  if (had_failure && !hotel_.get_actual_failure()) {
+    time_with_fail_ = 0U;
     if (active_event_ != nullptr) {
       active_event_->clear();
       active_event_.reset();
@@ -523,20 +523,20 @@ void Simulation::tick() {
     log_event(sim_event_category::awaria, "Awaria naprawiona.");
   }
 
-  process_reception_completions();
+  complete_pending_reception_tasks();
 
   const unsigned int hour = hour_of_day();
   const unsigned int day = weekday();
 
-  if (hotel.get_actual_failure()) {
+  if (hotel_.get_actual_failure()) {
     try_fix_failure();
   } else if (std::unique_ptr<HotelEvent> event =
-                 event_generator->decide_what_happens()) {
+                 event_generator_->decide_what_happens()) {
     active_event_ = std::move(event);
     active_event_->apply();
     log_event(sim_event_category::awaria,
               std::string(active_event_->description()) +
-                  " (szansa " + std::to_string(config.event_probability) +
+                  " (szansa " + std::to_string(config_.event_probability) +
                   "%).");
     try_fix_failure();
   }
@@ -548,22 +548,22 @@ void Simulation::tick() {
     process_daily_dirty_rooms(today);
   }
 
-  check_checkout(hour, day);
+  schedule_check_in_and_check_out(hour, day);
 
-  process_meal_completions();
-  if (!hotel.get_actual_failure() && !hotel.get_evacuation()) {
+  complete_pending_meal_tasks();
+  if (!hotel_.get_actual_failure() && !hotel_.get_evacuation()) {
     if (const std::optional<MealType> slot = current_meal_slot(hour)) {
       ensure_meal_attendance_plans(*slot, today);
       dispatch_meals(*slot, hour, day);
     }
   }
 
-  hotel.apply_completed_housekeeping();
-  if (!hotel.get_actual_failure()) {
+  hotel_.apply_completed_housekeeping();
+  if (!hotel_.get_actual_failure()) {
     const HousekeepingStats hk_stats =
-        hotel.collect_housekeeping_stats(hour, day);
+        hotel_.collect_housekeeping_stats(hour, day);
     const unsigned int hk_assigned =
-        hotel.dispatch_housekeeping(hour, day);
+        hotel_.dispatch_housekeeping(hour, day);
     if (hk_stats.dirty_rooms > 0U || hk_assigned > 0U) {
       std::ostringstream msg;
       msg << "brudne: " << hk_stats.dirty_rooms << ", w kolejce: "
@@ -576,8 +576,8 @@ void Simulation::tick() {
 
   {
     std::ostringstream msg;
-    msg << "Minal 1 tick (" << config.minutesPerTick
-        << " min). Obecny tick: " << current_tick << " (godz. " << hour
+    msg << "Minal 1 tick (" << config_.minutesPerTick
+        << " min). Obecny tick: " << current_tick_ << " (godz. " << hour
         << ", dzien_tygodnia " << day << ")";
     log_event(sim_event_category::czas, msg.str());
   }
@@ -588,49 +588,49 @@ void Simulation::run() {
 
   log_event(sim_event_category::symulacja,
             "Prawdopodobienstwo zdarzenia: " +
-                std::to_string(config.event_probability) + "%");
+                std::to_string(config_.event_probability) + "%");
 
-  if (config.max_ticks > 0U) {
+  if (config_.max_ticks > 0U) {
     log_event(sim_event_category::symulacja,
-              "Start — " + std::to_string(config.max_ticks) + " tickow.");
-    while (is_running && current_tick < config.max_ticks) {
+              "Start — " + std::to_string(config_.max_ticks) + " tickow.");
+    while (is_running_ && current_tick_ < config_.max_ticks) {
       tick();
     }
-    is_running = false;
+    is_running_ = false;
     log_event(sim_event_category::symulacja,
-              "Koniec po " + std::to_string(current_tick) + " tickach.");
+              "Koniec po " + std::to_string(current_tick_) + " tickach.");
 
     return;
   }
 
   log_event(sim_event_category::symulacja,
             "Start — Enter = kolejny tick, q = koniec.");
-  while (is_running) {
+  while (is_running_) {
     std::cout << ">>> ";
     std::string cmd;
     if (!std::getline(std::cin, cmd)) {
-      is_running = false;
+      is_running_ = false;
       break;
     }
     if (cmd == "q" || cmd == "Q") {
-      is_running = false;
+      is_running_ = false;
       break;
     }
     tick();
   }
   log_event(sim_event_category::symulacja,
-            "Koniec po " + std::to_string(current_tick) + " tickach.");
+            "Koniec po " + std::to_string(current_tick_) + " tickach.");
 }
 
 unsigned int Simulation::get_current_tick() const noexcept {
-  return current_tick;
+  return current_tick_;
 }
 
 unsigned int Simulation::days_elapsed() const noexcept {
-  if (current_tick == 0U) {
+  if (current_tick_ == 0U) {
     return 0U;
   }
-  return (current_tick - 1U) / config.ticsPerDay;
+  return (current_tick_ - 1U) / config_.ticsPerDay;
 }
 
 std::chrono::sys_days Simulation::actual_date() const noexcept {
@@ -638,11 +638,11 @@ std::chrono::sys_days Simulation::actual_date() const noexcept {
 }
 
 unsigned int Simulation::minutes_from_midnight() const noexcept {
-  if (current_tick == 0U) {
+  if (current_tick_ == 0U) {
     return 0U;
   }
-  const unsigned int slot_in_day = (current_tick - 1U) % config.ticsPerDay;
-  return slot_in_day * config.minutesPerTick;
+  const unsigned int slot_in_day = (current_tick_ - 1U) % config_.ticsPerDay;
+  return slot_in_day * config_.minutesPerTick;
 }
 
 std::string Simulation::format_virtual_time() const {
@@ -651,7 +651,7 @@ std::string Simulation::format_virtual_time() const {
   const unsigned int minute = total_minutes % 60U;
 
   std::ostringstream out;
-  if (config.date_start.ok()) {
+  if (config_.date_start.ok()) {
     const std::chrono::year_month_day ymd{actual_date()};
     out << std::setfill('0') << static_cast<int>(ymd.year()) << '-'
         << std::setw(2) << static_cast<unsigned>(ymd.month()) << '-'
@@ -672,7 +672,7 @@ unsigned int Simulation::minutes_of_hour() const noexcept {
 }
 
 unsigned int Simulation::weekday() const noexcept {
-  if (!config.date_start.ok()) {
+  if (!config_.date_start.ok()) {
     return days_elapsed() % 7U;
   }
   return weekday_index_from_sys_days(actual_date());
@@ -680,10 +680,10 @@ unsigned int Simulation::weekday() const noexcept {
 
 std::chrono::sys_days
 Simulation::get_actual_date(unsigned int days_elapsed) const noexcept {
-  return std::chrono::sys_days{config.date_start} +
+  return std::chrono::sys_days{config_.date_start} +
          std::chrono::days{static_cast<int>(days_elapsed)};
 }
 
 unsigned int Simulation::minutes_per_tick() const noexcept {
-  return config.minutesPerTick;
+  return config_.minutesPerTick;
 }
