@@ -26,7 +26,10 @@ unsigned int Simulation::days_elapsed() const noexcept {
   if (current_tick_ == 0U) {
     return 0U;
   }
-  return (current_tick_ - 1U) / config_.ticsPerDay;
+  const unsigned long long total_minutes =
+      static_cast<unsigned long long>(current_tick_ - 1U) *
+      static_cast<unsigned long long>(config_.minutesPerTick);
+  return static_cast<unsigned int>(total_minutes / 1440ULL);
 }
 
 std::chrono::sys_days Simulation::date_from_day_offset(
@@ -43,9 +46,10 @@ unsigned int Simulation::minutes_from_midnight() const noexcept {
   if (current_tick_ == 0U) {
     return 0U;
   }
-  const unsigned int slot_in_day =
-      (current_tick_ - 1U) % config_.ticsPerDay;
-  return slot_in_day * config_.minutesPerTick;
+  const unsigned long long total_minutes =
+      static_cast<unsigned long long>(current_tick_ - 1U) *
+      static_cast<unsigned long long>(config_.minutesPerTick);
+  return static_cast<unsigned int>(total_minutes % 1440ULL);
 }
 
 unsigned int Simulation::hour_of_day() const noexcept {
@@ -84,3 +88,6 @@ std::string Simulation::format_virtual_time() const {
   out << ' ' << std::setw(2) << hour << ':' << std::setw(2) << minute;
   return out.str();
 }
+
+// TODO dodac zeby logger mógł odebrać co n ticków
+//

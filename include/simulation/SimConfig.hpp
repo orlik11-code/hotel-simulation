@@ -6,7 +6,6 @@
 #include <vector>
 
 struct SimConfig {
-  unsigned int ticsPerDay = 24;
   unsigned int minutesPerTick = 60;
   unsigned int max_ticks = 0;
   /** True % chance per tick (1–100 roll); max 30 in config. */

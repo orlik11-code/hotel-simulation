@@ -5,7 +5,6 @@
 
 TEST_CASE("Simulation fills event log map during run") {
   SimConfig cfg;
-  cfg.ticsPerDay = 24U;
   cfg.minutesPerTick = 60U;
   cfg.event_probability = 0U;
   cfg.max_ticks = 2U;

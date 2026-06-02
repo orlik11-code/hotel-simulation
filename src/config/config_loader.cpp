@@ -51,10 +51,7 @@ SimConfig Config_loader::from_argv(int argc, char *argv[],
       ++i;
       continue;
     }
-    if (arg == "--tics-per-day" && i + 1 < argc) {
-      config.ticsPerDay =
-          file_parse::parse_positive(argv[++i], "tics_per_day");
-    } else if (arg == "--minutes-per-tick" && i + 1 < argc) {
+    if (arg == "--minutes-per-tick" && i + 1 < argc) {
       config.minutesPerTick =
           file_parse::parse_positive(argv[++i], "minutes_per_tick");
     } else if (arg == "--max-ticks" && i + 1 < argc) {
@@ -87,13 +84,11 @@ void Config_loader::print_usage(const char *program_name) {
             << "  --hotel <path>          Load simulation + staff from one file (preferred)\n"
             << "  --config <path>         Load simulation settings only\n"
             << "  --staff <path>          Load staff only (same format as [worker]/[schedule])\n"
-            << "  --tics-per-day <n>      Ticks per simulated day (default 24)\n"
             << "  --minutes-per-tick <n>  Model minutes per tick (default 60)\n"
-            << "  --max-ticks <n>         Run n ticks (0 = interactive, default 0)\n"
+            << "  --max-ticks <n>         Run n ticks (0 = full simulated day, default 0)\n"
             << "  --event-probability <n> True % chance per tick (1–100 roll), 0–30 (default 5)\n"
             << "  -h, --help              Show this message\n\n"
             << "Config file format (one key=value per line, # comments allowed):\n"
-            << "  tics_per_day=24\n"
             << "  minutes_per_tick=60\n"
             << "  max_ticks=10\n"
             << "  event_probability=5\n"

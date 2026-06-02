@@ -4,7 +4,6 @@
 
 TEST_CASE("Simulation weekday follows date_start from config") {
   SimConfig cfg;
-  cfg.ticsPerDay = 24U;
   cfg.minutesPerTick = 60U;
   cfg.event_probability = 0U;
   cfg.date_start = std::chrono::year_month_day{
@@ -17,18 +16,17 @@ TEST_CASE("Simulation weekday follows date_start from config") {
   simulation.tick();
   REQUIRE(simulation.weekday() == 0U);
 
-  cfg.ticsPerDay = 1U;
+  cfg.minutesPerTick = 1440U;
   simulation.set_config(cfg);
   for (unsigned int i = 0U; i < 7U; ++i) {
     simulation.tick();
   }
-  // 8 ticks total on config with 1 tick/day: day index 7 -> next Monday
+  // 8 ticks total with 1440 minutes/tick: day index 7 -> next Monday
   REQUIRE(simulation.weekday() == 0U);
 }
 
 TEST_CASE("Simulation days_elapsed and actual_date") {
   SimConfig cfg;
-  cfg.ticsPerDay = 24U;
   cfg.minutesPerTick = 60U;
   cfg.event_probability = 0U;
   cfg.date_start = std::chrono::year_month_day{

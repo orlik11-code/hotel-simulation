@@ -11,7 +11,6 @@ void write_temp_hotel(const std::string &path) {
   std::ofstream out(path);
   REQUIRE(out);
   out << "[simulation]\n"
-         "tics_per_day=24\n"
          "minutes_per_tick=60\n"
          "max_ticks=24\n"
          "event_probability=0\n"
