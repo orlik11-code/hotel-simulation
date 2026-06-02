@@ -70,9 +70,10 @@ private:
   void tick_resolve_maintenance();
   void tick_process_reception_queue();
   void tick_process_failures_and_random_events();
+  void tick_evaluate_hotel_cancellations(unsigned int hour, unsigned int minute);
   void tick_process_pending_cancellations();
   void tick_mark_daily_dirty_rooms();
-  void tick_schedule_reception_tasks(unsigned int hour, unsigned int weekday);
+  void tick_schedule_reception_tasks(unsigned int hour, unsigned int minute, unsigned int weekday);
   void tick_process_meals(unsigned int hour, unsigned int weekday);
   void tick_dispatch_housekeeping(unsigned int hour, unsigned int weekday);
   void tick_log_time_step(unsigned int hour, unsigned int weekday);
@@ -82,7 +83,9 @@ private:
 
   // --- Recepcja ---
   void complete_pending_reception_tasks();
-  void schedule_check_in_and_check_out(unsigned int hour, unsigned int weekday);
+  void process_guest_checkout_requests(std::chrono::sys_days today,
+                                       unsigned int hour, unsigned int minute);
+  void schedule_check_in_and_check_out(unsigned int hour, unsigned int minute, unsigned int weekday);
   [[nodiscard]] bool has_pending_reception(Reservation *reservation) const;
   void apply_guest_satisfaction_penalty(Reservation *reservation,
                                         int penalty_points);

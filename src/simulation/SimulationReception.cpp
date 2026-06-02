@@ -4,13 +4,6 @@
 
 #include <string>
 
-namespace {
-
-constexpr unsigned int kCheckOutHour = 8U;
-constexpr unsigned int kCheckInHour = 11U;
-
-} // namespace
-
 void Simulation::apply_guest_satisfaction_penalty(Reservation *reservation,
                                                   int penalty_points) {
   if (reservation == nullptr || reservation->get_is_cancelled()) {
@@ -83,13 +76,44 @@ void Simulation::tick_process_reception_queue() {
   complete_pending_reception_tasks();
 }
 
+void Simulation::process_guest_checkout_requests(
+    const std::chrono::sys_days today, unsigned int hour,
+    unsigned int minute) {
+  for (Reservation *reservation : hotel_.get_reservations()) {
+    if (reservation == nullptr || reservation->get_is_cancelled()) {
+      continue;
+    }
+    if (!reservation->is_checked_in() || reservation->is_checkout_settled()) {
+      continue;
+    }
+    if (reservation->get_check_out() != today ||
+        reservation->get_check_out_request()) {
+      continue;
+    }
+
+    const unsigned int checkout_hour =
+        static_cast<unsigned int>(reservation->get_hour_check_out());
+    const unsigned int checkout_minute =
+        static_cast<unsigned int>(reservation->get_minute_check_out());
+    if (hour > checkout_hour ||
+        (hour == checkout_hour && minute >= checkout_minute)) {
+      reservation->request_check_out(today);
+      log_event(sim_event_category::checkout,
+                "Gosc poprosil o wymeldowanie pokoju nr " +
+                    std::to_string(reservation->get_room().get_number()));
+    }
+  }
+}
+
 void Simulation::schedule_check_in_and_check_out(unsigned int hour,
+                                                 unsigned int minute,
                                                  unsigned int weekday) {
   if (hotel_.get_actual_failure()) {
     return;
   }
 
   const std::chrono::sys_days today = actual_date();
+  process_guest_checkout_requests(today, hour, minute);
 
   for (Reservation *reservation : hotel_.get_reservations()) {
     if (reservation == nullptr || reservation->get_is_cancelled()) {
@@ -97,10 +121,25 @@ void Simulation::schedule_check_in_and_check_out(unsigned int hour,
     }
 
     const bool checkin_today = reservation->get_check_in() == today;
-    const bool checkout_today = reservation->get_check_out() == today;
+    const unsigned int checkin_hour =
+        static_cast<unsigned int>(reservation->get_hour_check_in());
+    const unsigned int checkin_minute =
+        static_cast<unsigned int>(reservation->get_minute_check_in());
+    const bool checkin_due =
+        checkin_today &&
+        (hour > checkin_hour ||
+         (hour == checkin_hour && minute >= checkin_minute));
 
-    if (hour == kCheckInHour && checkin_today &&
-        !reservation->is_checked_in() &&
+    const unsigned int checkout_hour =
+        static_cast<unsigned int>(reservation->get_hour_check_out());
+    const unsigned int checkout_minute =
+        static_cast<unsigned int>(reservation->get_minute_check_out());
+    const bool checkout_due =
+        reservation->get_check_out_request() &&
+        (hour > checkout_hour ||
+         (hour == checkout_hour && minute >= checkout_minute));
+
+    if (checkin_due && !reservation->is_checked_in() &&
         !has_pending_reception(reservation)) {
       const Task reception_task = Task::make_check_in();
       Staff *receptionist = hotel_.assign_first_available_staff(
@@ -119,16 +158,11 @@ void Simulation::schedule_check_in_and_check_out(unsigned int hour,
       continue;
     }
 
-    if (hour != kCheckOutHour) {
-      continue;
-    }
-
     if (!reservation->check_has_begun(today)) {
       continue;
     }
 
-    if ((checkout_today || reservation->get_check_out_request()) &&
-        !reservation->is_checkout_settled() &&
+    if (checkout_due && !reservation->is_checkout_settled() &&
         !has_pending_reception(reservation)) {
       const Task reception_task = Task::make_check_in();
       Staff *receptionist = hotel_.assign_first_available_staff(
@@ -149,6 +183,7 @@ void Simulation::schedule_check_in_and_check_out(unsigned int hour,
 }
 
 void Simulation::tick_schedule_reception_tasks(unsigned int hour,
+                                               unsigned int minute,
                                                unsigned int weekday) {
-  schedule_check_in_and_check_out(hour, weekday);
+  schedule_check_in_and_check_out(hour, minute, weekday);
 }
