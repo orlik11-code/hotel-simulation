@@ -6,6 +6,7 @@
 namespace {
 
 constexpr unsigned int kFailureDestroyAfterMinutes = 40U;
+constexpr unsigned int kNoShowGraceMinutes = 120U;
 
 } // namespace
 
@@ -63,15 +64,62 @@ void Simulation::tick_process_failures_and_random_events() {
 }
 
 void Simulation::schedule_cancellation(Reservation *reservation) {
-  if (reservation == nullptr) {
+  if (reservation == nullptr || reservation->get_is_cancelled()) {
     return;
+  }
+  for (Reservation *pending : pending_cancellations_) {
+    if (pending == reservation) {
+      return;
+    }
   }
   pending_cancellations_.push_back(reservation);
 }
 
+void Simulation::tick_evaluate_hotel_cancellations(unsigned int hour,
+                                                   unsigned int minute) {
+  const std::chrono::sys_days today = actual_date();
+
+  if (hotel_.get_evacuation()) {
+    for (Reservation *reservation : hotel_.get_reservations()) {
+      if (reservation == nullptr || reservation->get_is_cancelled()) {
+        continue;
+      }
+      if (reservation->check_has_begun(today) &&
+          !reservation->is_checkout_settled()) {
+        schedule_cancellation(reservation);
+      }
+    }
+    return;
+  }
+
+  for (Reservation *reservation : hotel_.get_reservations()) {
+    if (reservation == nullptr || reservation->get_is_cancelled()) {
+      continue;
+    }
+    if (reservation->get_check_in() != today || reservation->is_checked_in()) {
+      continue;
+    }
+
+    const unsigned int checkin_minutes =
+        static_cast<unsigned int>(reservation->get_hour_check_in()) * 60U +
+        static_cast<unsigned int>(reservation->get_minute_check_in());
+    const unsigned int now_minutes = hour * 60U + minute;
+    if (now_minutes >= checkin_minutes + kNoShowGraceMinutes) {
+      schedule_cancellation(reservation);
+    }
+  }
+}
+
 void Simulation::process_cancellations() {
   for (Reservation *reservation : pending_cancellations_) {
+    if (reservation == nullptr || reservation->get_is_cancelled()) {
+      continue;
+    }
+    const unsigned int room_nr = reservation->get_room().get_number();
     hotel_.cancel_reservation(reservation, actual_date());
+    log_event(sim_event_category::rezerwacja,
+              "Hotel anulowal rezerwacje pokoju nr " +
+                  std::to_string(room_nr));
   }
   pending_cancellations_.clear();
 }

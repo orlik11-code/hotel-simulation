@@ -20,5 +20,6 @@ inline constexpr const char *checkout = "checkout";
 inline constexpr const char *awaria = "awaria";
 inline constexpr const char *symulacja = "symulacja";
 inline constexpr const char *restauracja = "restauracja";
+inline constexpr const char *rezerwacja = "rezerwacja";
 
 } // namespace sim_event_category
