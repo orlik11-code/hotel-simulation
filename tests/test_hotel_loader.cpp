@@ -45,7 +45,7 @@ TEST_CASE("Hotel_loader reads simulation and staff sections") {
 
   REQUIRE(cfg.minutesPerTick == 30U);
   REQUIRE(cfg.max_ticks == 5U);
-  REQUIRE(cfg.event_probability == 3U);
+  REQUIRE(cfg.event_probability == 30U);
   REQUIRE(cfg.date_start.ok());
   REQUIRE(cfg.date_start == std::chrono::year_month_day{
                                std::chrono::year{2026}, std::chrono::month{1},
