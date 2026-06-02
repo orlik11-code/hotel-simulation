@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <thread>
 
 #include "simulation/HotelReport.h"
 
@@ -62,15 +63,18 @@ void Simulation::tick() {
 
   const unsigned int hour = hour_of_day();
   const unsigned int day = weekday();
+  const unsigned int minute = minutes_of_hour();
 
   tick_process_failures_and_random_events();
+  tick_evaluate_hotel_cancellations(hour, minute);
   tick_process_pending_cancellations();
   tick_mark_daily_dirty_rooms();
-  tick_schedule_reception_tasks(hour, day);
+  tick_schedule_reception_tasks(hour, minute, day);
   tick_process_meals(hour, day);
   tick_dispatch_housekeeping(hour, day);
   tick_log_time_step(hour, day);
   refresh_hotel_report();
+
 }
 
 void Simulation::run() {
@@ -80,35 +84,20 @@ void Simulation::run() {
             "Prawdopodobienstwo zdarzenia: " +
                 std::to_string(config_.event_probability) + "%");
 
-  if (config_.max_ticks > 0U) {
-    log_event(sim_event_category::symulacja,
-              "Start — " + std::to_string(config_.max_ticks) + " tickow.");
-    while (is_running_ && current_tick_ < config_.max_ticks) {
-      tick();
-    }
-    is_running_ = false;
-    log_event(sim_event_category::symulacja,
-              "Koniec po " + std::to_string(current_tick_) + " tickach.");
-    publish_hotel_report();
-    return;
-  }
-
+  const unsigned int target_ticks =
+      (config_.max_ticks > 0U)
+          ? config_.max_ticks
+          : (1440U + config_.minutesPerTick - 1U) / config_.minutesPerTick;
   log_event(sim_event_category::symulacja,
-            "Start — Enter = kolejny tick, q = koniec.");
+            "Start automatyczny — " + std::to_string(target_ticks) +
+                " tickow.");
 
-  while (is_running_) {
-    std::cout << ">>> ";
-    std::string cmd;
-    if (!std::getline(std::cin, cmd)) {
-      is_running_ = false;
-      break;
-    }
-    if (cmd == "q" || cmd == "Q") {
-      is_running_ = false;
-      break;
-    }
+  while (is_running_ && current_tick_ < target_ticks) {
     tick();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
   }
+
+  is_running_ = false;
   log_event(sim_event_category::symulacja,
             "Koniec po " + std::to_string(current_tick_) + " tickach.");
 
