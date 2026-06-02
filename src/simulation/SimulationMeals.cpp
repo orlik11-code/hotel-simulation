@@ -3,9 +3,13 @@
 #include "simulation/simulation_rng.hpp"
 #include "staff/types.hpp"
 
+#include <algorithm>
+#include <sstream>
 #include <string>
 
 namespace {
+
+constexpr unsigned int kChefBatchCapacity = 10U;
 
 [[nodiscard]] const char *meal_type_label(MealType type) {
   return type == MealType::breakfast ? "breakfast" : "dinner";
@@ -197,6 +201,69 @@ void Simulation::dispatch_meals(MealType slot, unsigned int hour,
   }
 
   const std::chrono::sys_days today = actual_date();
+  const unsigned int minute = minutes_of_hour();
+  const bool is_hour_slot_start = minute < config_.minutesPerTick;
+
+  std::vector<Reservation *> to_cook;
+  if (is_hour_slot_start) {
+    for (Reservation *reservation : hotel_.get_reservations()) {
+      if (!reservation_eligible_for_meal(reservation, today)) {
+        continue;
+      }
+      if (already_served(reservation, slot, today) ||
+          has_no_show(reservation, slot, today) ||
+          has_pending_meal(reservation, slot)) {
+        continue;
+      }
+
+      const MealAttendancePlan *plan =
+          find_meal_plan(reservation, slot, today);
+      if (plan == nullptr || !plan->will_attend ||
+          plan->planned_arrival_hour != hour) {
+        continue;
+      }
+      to_cook.push_back(reservation);
+    }
+  }
+
+  for (size_t batch_start = 0U; batch_start < to_cook.size();
+       batch_start += kChefBatchCapacity) {
+    const size_t batch_end =
+        std::min(batch_start + static_cast<size_t>(kChefBatchCapacity),
+                 to_cook.size());
+    std::vector<Reservation *> batch;
+    batch.reserve(batch_end - batch_start);
+    for (size_t i = batch_start; i < batch_end; ++i) {
+      batch.push_back(to_cook[i]);
+    }
+
+    const Task cook_task = Task::make_cook_meal();
+    Staff *chef = hotel_.assign_first_available_staff(
+        StaffRole::Chef, cook_task, hour, weekday);
+    if (chef != nullptr) {
+      std::ostringstream rooms;
+      for (Reservation *reservation : batch) {
+        pending_meals_.push_back(PendingMealTask{
+            reservation, slot, MealPhase::Cooking, chef->get_uid()});
+        if (rooms.tellp() > 0) {
+          rooms << ", ";
+        }
+        rooms << reservation->get_room().get_number();
+      }
+      log_event(sim_event_category::restauracja,
+                "Kucharz " + std::to_string(chef->get_uid()) + " gotuje " +
+                    meal_type_label(slot) + " dla pokoi: " + rooms.str());
+      continue;
+    }
+
+    for (Reservation *reservation : batch) {
+      meal_no_shows_.push_back(MealNoShowRecord{reservation, slot, today});
+      apply_guest_satisfaction_penalty(reservation, 1);
+    }
+    log_event(sim_event_category::restauracja,
+              "Brak wolnego kucharza na " + std::string(meal_type_label(slot)) +
+                  " (" + std::to_string(batch.size()) + " pokoi)");
+  }
 
   for (Reservation *reservation : hotel_.get_reservations()) {
     if (!reservation_eligible_for_meal(reservation, today)) {
@@ -214,27 +281,6 @@ void Simulation::dispatch_meals(MealType slot, unsigned int hour,
     }
 
     const unsigned int room_nr = reservation->get_room().get_number();
-
-    if (!has_pending_meal(reservation, slot)) {
-      const Task cook_task = Task::make_cook_meal();
-      Staff *chef = hotel_.assign_first_available_staff(
-          StaffRole::Chef, cook_task, hour, weekday);
-      if (chef != nullptr) {
-        pending_meals_.push_back(PendingMealTask{
-            reservation, slot, MealPhase::Cooking, chef->get_uid()});
-        log_event(sim_event_category::restauracja,
-                  "Kucharz " + std::to_string(chef->get_uid()) + " gotuje " +
-                      meal_type_label(slot) + " (pokoj nr " +
-                      std::to_string(room_nr) + ")");
-      } else {
-        apply_guest_satisfaction_penalty(reservation, 1);
-        log_event(sim_event_category::restauracja,
-                  "Brak wolnego kucharza na " +
-                      std::string(meal_type_label(slot)) + " (pokoj nr " +
-                      std::to_string(room_nr) + ")");
-      }
-      continue;
-    }
 
     for (PendingMealTask &pending : pending_meals_) {
       if (pending.reservation != reservation || pending.meal_type != slot ||
