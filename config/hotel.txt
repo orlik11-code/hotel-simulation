@@ -1,9 +1,7 @@
 # Unified hotel configuration (simulation + staff)
 
 [simulation]
-tics_per_day=24
 minutes_per_tick=5
-max_ticks=72
 event_probability=0
 date_start=2026-05-18
 meal_attendance_percent=80
@@ -20,6 +18,10 @@ double_beds=0
 room_number=101
 check_in=2026-05-18
 check_out=2026-05-22
+hour_check_in=11
+minute_check_in=0
+hour_check_out=8
+minute_check_out=0
 food_included=false
 food_price=0
 
@@ -40,6 +42,10 @@ double_beds=2
 room_number=102
 check_in=2026-05-18
 check_out=2026-05-22
+hour_check_in=12
+minute_check_in=30
+hour_check_out=7
+minute_check_out=30
 food_included=true
 food_price=40
 

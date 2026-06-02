@@ -80,6 +80,10 @@ struct ReservationDraft {
   std::optional<std::chrono::year_month_day> check_out;
   bool food_included = false;
   unsigned int food_price = 0U;
+  unsigned int hour_check_in = 12U;
+  unsigned int minute_check_in = 0U;
+  unsigned int hour_check_out = 7U;
+  unsigned int minute_check_out = 30U;
   std::vector<GuestDraft> guests;
 };
 
@@ -357,6 +361,34 @@ void apply_reservation_key(ReservationDraft &draft, const std::string &key,
     draft.food_included = parse_bool(value);
   } else if (key == "food_price") {
     draft.food_price = file_parse::parse_non_negative(value, "food_price");
+  } else if (key == "hour_check_in") {
+    draft.hour_check_in =
+        file_parse::parse_non_negative(value, "hour_check_in");
+    if (draft.hour_check_in > 23U) {
+      throw std::invalid_argument("Line " + std::to_string(line_no) +
+                                  ": hour_check_in must be 0-23");
+    }
+  } else if (key == "minute_check_in") {
+    draft.minute_check_in =
+        file_parse::parse_non_negative(value, "minute_check_in");
+    if (draft.minute_check_in > 59U) {
+      throw std::invalid_argument("Line " + std::to_string(line_no) +
+                                  ": minute_check_in must be 0-59");
+    }
+  } else if (key == "hour_check_out") {
+    draft.hour_check_out =
+        file_parse::parse_non_negative(value, "hour_check_out");
+    if (draft.hour_check_out > 23U) {
+      throw std::invalid_argument("Line " + std::to_string(line_no) +
+                                  ": hour_check_out must be 0-23");
+    }
+  } else if (key == "minute_check_out") {
+    draft.minute_check_out =
+        file_parse::parse_non_negative(value, "minute_check_out");
+    if (draft.minute_check_out > 59U) {
+      throw std::invalid_argument("Line " + std::to_string(line_no) +
+                                  ": minute_check_out must be 0-59");
+    }
   } else {
     throw std::invalid_argument("Line " + std::to_string(line_no) +
                                 ": unknown reservation key '" + key + "'");
@@ -515,7 +547,8 @@ void flush_reservation(Hotel &hotel, LoadContext &ctx, ReservationDraft &draft,
   Room *room = room_it->second;
   hotel.add_reservation(std::make_unique<Reservation>(
       std::move(people), room, *draft.check_in, *draft.check_out,
-      draft.food_included, draft.food_price));
+      draft.food_included, draft.food_price, draft.hour_check_in,
+      draft.minute_check_in, draft.hour_check_out, draft.minute_check_out));
 
   draft = ReservationDraft{};
 }

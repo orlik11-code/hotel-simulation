@@ -23,7 +23,6 @@ TEST_CASE("Hotel_loader reads simulation and staff sections") {
   const std::string path = "test_hotel_loader.conf";
   write_temp_hotel_file(path,
                         "[simulation]\n"
-                        "tics_per_day=12\n"
                         "minutes_per_tick=30\n"
                         "max_ticks=5\n"
                         "event_probability=3\n"
@@ -44,7 +43,6 @@ TEST_CASE("Hotel_loader reads simulation and staff sections") {
   Hotel hotel;
   const SimConfig cfg = Hotel_loader::load(path, hotel);
 
-  REQUIRE(cfg.ticsPerDay == 12U);
   REQUIRE(cfg.minutesPerTick == 30U);
   REQUIRE(cfg.max_ticks == 5U);
   REQUIRE(cfg.event_probability == 3U);
@@ -81,10 +79,44 @@ TEST_CASE("Hotel_loader staff-only file leaves default simulation config") {
   Hotel hotel;
   const SimConfig cfg = Hotel_loader::load(path, hotel);
 
-  REQUIRE(cfg.ticsPerDay == 24U);
   REQUIRE(cfg.minutesPerTick == 60U);
   REQUIRE(cfg.max_ticks == 0U);
   REQUIRE(hotel.check_existance(3U));
+
+  std::remove(path.c_str());
+}
+
+TEST_CASE("Hotel_loader reads reservation check-in and check-out times") {
+  const std::string path = "test_hotel_loader_reservation_times.conf";
+  write_temp_hotel_file(path,
+                        "[room]\n"
+                        "type=Single\n"
+                        "number=501\n"
+                        "floor=1\n"
+                        "area=20\n"
+                        "[reservation]\n"
+                        "room_number=501\n"
+                        "check_in=2026-05-18\n"
+                        "check_out=2026-05-20\n"
+                        "hour_check_in=14\n"
+                        "minute_check_in=15\n"
+                        "hour_check_out=9\n"
+                        "minute_check_out=45\n"
+                        "food_included=false\n"
+                        "food_price=0\n"
+                        "[reservation_guest]\n"
+                        "type=Business\n"
+                        "name=Test\n"
+                        "surname=Guest\n");
+
+  Hotel hotel;
+  (void)Hotel_loader::load(path, hotel);
+  REQUIRE(hotel.get_reservations().size() == 1U);
+  const Reservation *reservation = hotel.get_reservations().front();
+  REQUIRE(reservation->get_hour_check_in() == 14);
+  REQUIRE(reservation->get_minute_check_in() == 15);
+  REQUIRE(reservation->get_hour_check_out() == 9);
+  REQUIRE(reservation->get_minute_check_out() == 45);
 
   std::remove(path.c_str());
 }
