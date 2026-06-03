@@ -6,28 +6,28 @@
 
 TEST_CASE("EventGenerator initialization") {
   Hotel hotel;
-  EventGenerator generator(hotel, 20);
+  EventGenerator generator(hotel, 200U);
 
   CHECK(&generator.get_hotel() == &hotel);
 }
 
 TEST_CASE("EventGenerator probability limit") {
   Hotel hotel;
-  CHECK_THROWS_AS(EventGenerator(hotel, 31), std::invalid_argument);
-  CHECK_NOTHROW(EventGenerator(hotel, 30));
-  CHECK_NOTHROW(EventGenerator(hotel, 1));
+  CHECK_THROWS_AS(EventGenerator(hotel, 301U), std::invalid_argument);
+  CHECK_NOTHROW(EventGenerator(hotel, 300U));
+  CHECK_NOTHROW(EventGenerator(hotel, 5U));
 }
 
 TEST_CASE("EventGenerator creates events") {
   Hotel hotel;
-  EventGenerator generator(hotel, 30);
+  EventGenerator generator(hotel, 300U);
 
   std::unique_ptr<HotelEvent> event = generator.decide_what_happens();
 }
 
 TEST_CASE("EventGenerator with low probability") {
   Hotel hotel;
-  EventGenerator generator(hotel, 1);
+  EventGenerator generator(hotel, 10U);
 
   int event_count = 0;
   for (int i = 0; i < 10; ++i) {
@@ -42,7 +42,7 @@ TEST_CASE("EventGenerator with low probability") {
 
 TEST_CASE("EventGenerator with high probability") {
   Hotel hotel;
-  EventGenerator generator(hotel, 25);
+  EventGenerator generator(hotel, 250U);
 
   int event_count = 0;
   for (int i = 0; i < 10; ++i) {

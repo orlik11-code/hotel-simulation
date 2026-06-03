@@ -36,7 +36,7 @@ TEST_CASE("Room basic functionality and status management") {
 
 TEST_CASE("SingleRoom logic and validation") {
   SingleRoom sr(12.0, 102, 0, 1, 0, false, false);
-  CHECK(sr.calculateNightlyPrice() == 100);
+  CHECK(sr.calculateNightlyPrice() == 400);
   CHECK(sr.calculateStaffNeeded() == 1);
 
   std::vector<unsigned int> one_person = {1};
@@ -50,7 +50,7 @@ TEST_CASE("SingleRoom logic and validation") {
 
 TEST_CASE("DoubleRoom logic and validation") {
   DoubleRoom dr(20.0, 201, 2, 0, 1, false, false);
-  CHECK(dr.calculateNightlyPrice() == 170 + (15 * 2));
+  CHECK(dr.calculateNightlyPrice() == 550 + (50 * 2));
   CHECK(dr.calculateStaffNeeded() == 2);
 
   std::vector<unsigned int> couple = {2};
@@ -64,7 +64,7 @@ TEST_CASE("DoubleRoom logic and validation") {
 
 TEST_CASE("TripleRoom logic and validation") {
   TripleRoom tr(25.0, 301, 1, 1, 1, false, false);
-  CHECK(tr.calculateNightlyPrice() == 220 + 20);
+  CHECK(tr.calculateNightlyPrice() == 750 + 70);
   CHECK(tr.calculateStaffNeeded() == 2);
 
   std::vector<unsigned int> family = {2, 1};
@@ -76,7 +76,7 @@ TEST_CASE("TripleRoom logic and validation") {
 
 TEST_CASE("Apartment logic") {
   Apartment ap(45.0, 401, 5, 2, 1, false, false);
-  unsigned int expected_price = 170 + (10 * 3) + (20 * 5);
+  unsigned int expected_price = 550 + (35 * 3) + (70 * 5);
   CHECK(ap.calculateNightlyPrice() == expected_price);
   CHECK(ap.calculateStaffNeeded() == (3 / 3) + 1);
 }

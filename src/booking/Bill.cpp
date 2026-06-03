@@ -16,7 +16,8 @@ Bill::Bill(const Reservation &reservation) : reservation(&reservation) {
   auto bill_food =
       static_cast<unsigned int>(reservation.get_food_included()) * food_price;
 
-  this->total_bill = nights_ui * nightly_bill + bill_food * people;
+  this->total_bill =
+      nights_ui * nightly_bill + nights_ui * bill_food * people;
 }
 
 unsigned int Bill::get_total_bill() const { return this->total_bill; }

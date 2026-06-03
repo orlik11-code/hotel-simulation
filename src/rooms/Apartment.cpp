@@ -11,9 +11,9 @@ Apartment::Apartment(double area, unsigned int number, unsigned int floor,
 }
 
 unsigned int Apartment::calculateNightlyPrice() const {
-  unsigned int base_price = 170;
-  unsigned int beds_price = 10 * (get_single_beds() + get_double_beds());
-  unsigned int floor_price = 20 * get_floor();
+  unsigned int base_price = 550;
+  unsigned int beds_price = 35 * (get_single_beds() + get_double_beds());
+  unsigned int floor_price = 70 * get_floor();
 
   unsigned int res = base_price + beds_price + floor_price;
   return res;
