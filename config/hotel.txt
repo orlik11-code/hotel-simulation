@@ -462,3 +462,42 @@ type=Family
 name=Antoni
 surname=Krawczyk
 
+# 301 — VIP apartament
+[reservation]
+room_number=301
+check_in=2026-06-02
+check_out=2026-06-06
+hour_check_in=15
+minute_check_in=0
+hour_check_out=12
+minute_check_out=0
+food_included=true
+food_price=90
+
+[reservation_guest]
+type=VIP
+name=Alexander
+surname=Sterling
+
+[reservation_guest]
+type=VIP
+name=Victoria
+surname=Sterling
+
+# 302 — VIP solo
+[reservation]
+room_number=302
+check_in=2026-06-02
+check_out=2026-06-04
+hour_check_in=16
+minute_check_in=0
+hour_check_out=11
+minute_check_out=30
+food_included=true
+food_price=85
+
+[reservation_guest]
+type=VIP
+name=Isabella
+surname=Conti
+
