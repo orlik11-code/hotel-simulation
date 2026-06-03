@@ -164,3 +164,80 @@ area=95
 single_beds=1
 double_beds=2
 
+# =============================================================================
+# REZERWACJE — różne profile gości, godziny, wyżywienie
+# =============================================================================
+
+# 101 — biznesmen, krótki pobyt, bez wyżywienia
+[reservation]
+room_number=101
+check_in=2026-06-02
+check_out=2026-06-04
+hour_check_in=14
+minute_check_in=0
+hour_check_out=10
+minute_check_out=30
+food_included=false
+food_price=0
+
+[reservation_guest]
+type=Business
+name=Marek
+surname=Wisniewski
+
+# 102 — konferencja, meldunek wcześnie rano
+[reservation]
+room_number=102
+check_in=2026-06-02
+check_out=2026-06-03
+hour_check_in=7
+minute_check_in=30
+hour_check_out=8
+minute_check_out=0
+food_included=true
+food_price=35
+
+[reservation_guest]
+type=Business
+name=Ewa
+surname=Kaminska
+
+# 103 — dłuższy pobyt solo
+[reservation]
+room_number=103
+check_in=2026-06-02
+check_out=2026-06-06
+hour_check_in=15
+minute_check_in=15
+hour_check_out=11
+minute_check_out=0
+food_included=false
+food_price=0
+
+[reservation_guest]
+type=Business
+name=Piotr
+surname=Zielinski
+
+# 104 — para business + wyżywienie
+[reservation]
+room_number=104
+check_in=2026-06-02
+check_out=2026-06-05
+hour_check_in=12
+minute_check_in=0
+hour_check_out=9
+minute_check_out=45
+food_included=true
+food_price=45
+
+[reservation_guest]
+type=Business
+name=Karolina
+surname=Lewandowska
+
+[reservation_guest]
+type=Business
+name=Tomasz
+surname=Lewandowski
+
