@@ -241,3 +241,47 @@ type=Business
 name=Tomasz
 surname=Lewandowski
 
+# 105 — przyjazd tego samego dnia co start symulacji, popołudnie
+[reservation]
+room_number=105
+check_in=2026-06-02
+check_out=2026-06-04
+hour_check_in=16
+minute_check_in=30
+hour_check_out=8
+minute_check_out=15
+food_included=true
+food_price=40
+
+[reservation_guest]
+type=Business
+name=Agata
+surname=Nowicka
+
+[reservation_guest]
+type=Business
+name=Robert
+surname=Nowicki
+
+# 106 — check-in następnego dnia (test kolejki recepcji)
+[reservation]
+room_number=106
+check_in=2026-06-03
+check_out=2026-06-06
+hour_check_in=11
+minute_check_in=0
+hour_check_out=7
+minute_check_out=30
+food_included=false
+food_price=0
+
+[reservation_guest]
+type=Business
+name=Hubert
+surname=Sikora
+
+[reservation_guest]
+type=Business
+name=Joanna
+surname=Sikora
+
