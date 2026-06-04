@@ -37,6 +37,7 @@ public:
   [[nodiscard]] unsigned int minutes_of_hour() const noexcept;
   [[nodiscard]] unsigned int weekday() const noexcept;
   [[nodiscard]] unsigned int minutes_per_tick() const noexcept;
+  [[nodiscard]] std::string format_virtual_time_for_tick(unsigned int tick) const;
 
 private:
   // --- Stan ---
@@ -61,6 +62,7 @@ private:
 
   // --- Log i czas ---
   void log_event(const std::string &category, const std::string &message);
+  [[nodiscard]] bool should_print_to_console(const std::string &category) const;
   [[nodiscard]] std::string format_virtual_time() const;
   [[nodiscard]] std::chrono::sys_days
   date_from_day_offset(unsigned int days_elapsed) const noexcept;
@@ -118,6 +120,7 @@ private:
   HotelReport build_hotel_report() const;
   void refresh_hotel_report();
   void publish_hotel_report() const;
+  void export_log_file() const;
 
   void process_cancellations();
 };

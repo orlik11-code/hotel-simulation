@@ -72,22 +72,32 @@ unsigned int Simulation::minutes_per_tick() const noexcept {
 }
 
 std::string Simulation::format_virtual_time() const {
-  const unsigned int total_minutes = minutes_from_midnight();
-  const unsigned int hour = (total_minutes / 60U) % 24U;
-  const unsigned int minute = total_minutes % 60U;
+  return format_virtual_time_for_tick(current_tick_);
+}
+
+std::string Simulation::format_virtual_time_for_tick(unsigned int tick) const {
+  const unsigned long long total_minutes =
+      (tick == 0U ? 0ULL : static_cast<unsigned long long>(tick - 1U)) *
+      static_cast<unsigned long long>(config_.minutesPerTick);
+  const unsigned int minute_of_day =
+      static_cast<unsigned int>(total_minutes % 1440ULL);
+  const unsigned int hour = (minute_of_day / 60U) % 24U;
+  const unsigned int minute = minute_of_day % 60U;
 
   std::ostringstream out;
   if (config_.date_start.ok()) {
-    const std::chrono::year_month_day ymd{actual_date()};
+    const unsigned int day_offset =
+        static_cast<unsigned int>(total_minutes / 1440ULL);
+    const std::chrono::sys_days day =
+        std::chrono::sys_days{config_.date_start} +
+        std::chrono::days{static_cast<int>(day_offset)};
+    const std::chrono::year_month_day ymd{day};
     out << std::setfill('0') << static_cast<int>(ymd.year()) << '-'
         << std::setw(2) << static_cast<unsigned>(ymd.month()) << '-'
         << std::setw(2) << static_cast<unsigned>(ymd.day());
   } else {
-    out << "dzien-" << days_elapsed();
+    out << "day-" << (total_minutes / 1440ULL);
   }
   out << ' ' << std::setw(2) << hour << ':' << std::setw(2) << minute;
   return out.str();
 }
-
-// TODO dodac zeby logger mógł odebrać co n ticków
-//

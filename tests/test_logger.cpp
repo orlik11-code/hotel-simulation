@@ -45,7 +45,7 @@ TEST_CASE("Logger log generation logic") {
     std::string line;
     bool found = false;
     while (std::getline(file, line)) {
-      if (line.find("[10]") != std::string::npos) {
+      if (line.find("Current tick: 10") != std::string::npos) {
         found = true;
         break;
       }

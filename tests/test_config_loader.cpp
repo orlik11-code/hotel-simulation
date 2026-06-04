@@ -27,7 +27,17 @@ TEST_CASE("Config_loader reads key/value file into SimConfig") {
   const SimConfig cfg = Config_loader::from_file(path);
   REQUIRE(cfg.minutesPerTick == 30U);
   REQUIRE(cfg.max_ticks == 5U);
-  REQUIRE(cfg.event_probability == 3U);
+  REQUIRE(cfg.event_probability == 25U);
+
+  std::remove(path.c_str());
+}
+
+TEST_CASE("Config_loader parses fractional event probability") {
+  const std::string path = "test_config_fractional.conf";
+  write_temp_config(path, "event_probability=0.5\n");
+
+  const SimConfig cfg = Config_loader::from_file(path);
+  REQUIRE(cfg.event_probability == 5U);
 
   std::remove(path.c_str());
 }
@@ -73,6 +83,21 @@ TEST_CASE("Config_loader rejects unknown keys") {
   write_temp_config(path, "unknown_key=1\n");
 
   REQUIRE_THROWS_AS(Config_loader::from_file(path), std::invalid_argument);
+  std::remove(path.c_str());
+}
+
+TEST_CASE("Config_loader reads log_every_n_ticks and log_file") {
+  const std::string path = "test_config_loader_log.conf";
+  write_temp_config(path,
+                    "log_every_n_ticks=5\n"
+                    "log_file=run.log\n"
+                    "log_file_every_n_ticks=10\n");
+
+  const SimConfig cfg = Config_loader::from_file(path);
+  REQUIRE(cfg.log_every_n_ticks == 5U);
+  REQUIRE(cfg.log_file == "run.log");
+  REQUIRE(cfg.log_file_every_n_ticks == 10U);
+
   std::remove(path.c_str());
 }
 

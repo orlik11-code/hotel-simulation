@@ -5,7 +5,10 @@
 #include <string>
 #include <thread>
 
+#include "config/file_parse.hpp"
+#include "logger/Logger.hpp"
 #include "simulation/HotelReport.h"
+#include "simulation/SimEventLog.hpp"
 
 Simulation::Simulation(const SimConfig &new_sim_config)
     : hotel_(), config_(new_sim_config), current_tick_(0U), is_running_(true),
@@ -19,17 +22,32 @@ void Simulation::set_live_console_output(bool enabled) noexcept {
   live_console_output_ = enabled;
 }
 
+bool Simulation::should_print_to_console(const std::string &category) const {
+  if (!live_console_output_) {
+    return false;
+  }
+  if (category != sim_event_category::czas) {
+    return true;
+  }
+  const unsigned int interval = config_.log_every_n_ticks;
+  if (interval <= 1U) {
+    return true;
+  }
+  return current_tick_ % interval == 0U;
+}
+
 void Simulation::log_event(const std::string &category,
                            const std::string &message) {
   event_log_[category].push_back(
       {message, static_cast<int>(current_tick_)});
 
-  if (!live_console_output_) {
+  if (!should_print_to_console(category)) {
     return;
   }
 
   std::cout << '[' << format_virtual_time() << "] [" << category << "] "
-            << message << '\n';
+            << message << " (balance=" << hotel_.get_balance()
+            << ", weekday=" << weekday() << ")\n";
   std::cout.flush();
 }
 
@@ -45,14 +63,25 @@ void Simulation::set_config(const SimConfig &sim_config) {
 
 void Simulation::tick_advance_hotel_clock() {
   ++current_tick_;
-  hotel_.tick(config_.minutesPerTick);
+  hotel_.tick(config_.minutesPerTick, hour_of_day(), weekday());
 }
 
 void Simulation::tick_log_time_step(unsigned int hour, unsigned int weekday) {
+  (void)hour;
+  (void)weekday;
+  const unsigned int interval =
+      config_.log_every_n_ticks > 0U ? config_.log_every_n_ticks : 1U;
   std::ostringstream msg;
-  msg << "Minal 1 tick (" << config_.minutesPerTick
-      << " min). Obecny tick: " << current_tick_ << " (godz. " << hour
-      << ", dzien_tygodnia " << weekday << ")";
+  if (interval <= 1U) {
+    msg << "1 tick elapsed (" << config_.minutesPerTick
+        << " min). Current tick: " << current_tick_;
+  } else if (current_tick_ % interval == 0U) {
+    const unsigned int elapsed_minutes = interval * config_.minutesPerTick;
+    msg << interval << " ticks elapsed (" << elapsed_minutes
+        << " min). Current tick: " << current_tick_;
+  } else {
+    msg << "Tick " << current_tick_;
+  }
   log_event(sim_event_category::czas, msg.str());
 }
 
@@ -81,16 +110,15 @@ void Simulation::run() {
   refresh_hotel_report();
 
   log_event(sim_event_category::symulacja,
-            "Prawdopodobienstwo zdarzenia: " +
-                std::to_string(config_.event_probability) + "%");
+            "Event probability: " +
+                file_parse::format_probability_tenths(config_.event_probability));
 
   const unsigned int target_ticks =
       (config_.max_ticks > 0U)
           ? config_.max_ticks
           : (1440U + config_.minutesPerTick - 1U) / config_.minutesPerTick;
   log_event(sim_event_category::symulacja,
-            "Start automatyczny — " + std::to_string(target_ticks) +
-                " tickow.");
+            "Auto-run started — " + std::to_string(target_ticks) + " ticks.");
 
   while (is_running_ && current_tick_ < target_ticks) {
     tick();
@@ -99,9 +127,23 @@ void Simulation::run() {
 
   is_running_ = false;
   log_event(sim_event_category::symulacja,
-            "Koniec po " + std::to_string(current_tick_) + " tickach.");
+            "Finished after " + std::to_string(current_tick_) + " ticks.");
 
   publish_hotel_report();
+  if (!config_.log_file.empty() && current_tick_ > 0U) {
+    export_log_file();
+    log_event(sim_event_category::symulacja,
+              "Log exported to file: " + config_.log_file);
+  }
+}
+
+void Simulation::export_log_file() const {
+  const unsigned int file_interval =
+      config_.log_file_every_n_ticks > 0U ? config_.log_file_every_n_ticks
+                                            : config_.log_every_n_ticks;
+  Logger logger(config_.log_file, *this, static_cast<int>(file_interval));
+  logger.prepare_log(1, static_cast<int>(current_tick_),
+                     sim_event_category::all_categories());
 }
 
 HotelReport Simulation::build_hotel_report() const {
@@ -112,7 +154,7 @@ HotelReport Simulation::build_hotel_report() const {
   unsigned int guest_count = 0U;
 
   for (Reservation *reservation : hotel_.get_reservations()) {
-    if (reservation == nullptr || reservation->get_is_cancelled()) {
+    if (reservation == nullptr || !reservation->is_checked_in()) {
       continue;
     }
     for (const std::unique_ptr<Guest> &guest : reservation->get_people()) {
@@ -129,7 +171,7 @@ HotelReport Simulation::build_hotel_report() const {
   report.guest_count = guest_count;
   if (guest_count == 0U) {
     report.average_satisfaction = 0U;
-    report.rating_label = "slaby";
+    report.rating_label = "poor";
     return report;
   }
 
@@ -137,13 +179,13 @@ HotelReport Simulation::build_hotel_report() const {
       static_cast<unsigned int>(satisfaction_sum / guest_count);
 
   if (report.average_satisfaction >= 80U) {
-    report.rating_label = "bardzo_dobry";
+    report.rating_label = "excellent";
   } else if (report.average_satisfaction >= 60U) {
-    report.rating_label = "dobry";
+    report.rating_label = "good";
   } else if (report.average_satisfaction >= 40U) {
-    report.rating_label = "sredni";
+    report.rating_label = "average";
   } else {
-    report.rating_label = "slaby";
+    report.rating_label = "poor";
   }
 
   return report;
@@ -157,8 +199,8 @@ const HotelReport &Simulation::get_hotel_report() const noexcept {
 
 void Simulation::publish_hotel_report() const {
   const HotelReport &report = get_hotel_report();
-  std::cout << "RAPORT: saldo=" << report.balance
-            << " gosci=" << report.guest_count
-            << " srednia_satysfakcja=" << report.average_satisfaction
-            << " ocena=" << report.rating_label << '\n';
+  std::cout << "REPORT: balance=" << report.balance
+            << " guests=" << report.guest_count
+            << " avg_satisfaction=" << report.average_satisfaction
+            << " rating=" << report.rating_label << '\n';
 }
