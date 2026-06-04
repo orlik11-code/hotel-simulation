@@ -55,16 +55,16 @@ void Simulation::complete_pending_reception_tasks() {
       hotel_.complete_checkout(it->reservation);
       it->reservation->mark_checkout_settled();
       log_event(sim_event_category::checkout,
-                "Wymeldowano pokoj nr " + std::to_string(room_nr));
+                "Checked out room " + std::to_string(room_nr));
     } else {
       it->reservation->mark_checked_in();
       log_event(sim_event_category::check_in,
-                "Zameldowano pokoj nr " + std::to_string(room_nr));
+                "Checked in room " + std::to_string(room_nr));
       if (it->reservation->get_room().is_to_clean()) {
         apply_guest_satisfaction_penalty(it->reservation, 2);
         log_event(sim_event_category::sprzatanie,
-                  "Wydany pokoj nr " + std::to_string(room_nr) +
-                      " nie byl posprzatany");
+                  "Room " + std::to_string(room_nr) +
+                      " was not cleaned before check-in");
       }
     }
 
@@ -99,7 +99,7 @@ void Simulation::process_guest_checkout_requests(
         (hour == checkout_hour && minute >= checkout_minute)) {
       reservation->request_check_out(today);
       log_event(sim_event_category::checkout,
-                "Gosc poprosil o wymeldowanie pokoju nr " +
+                "Guest requested checkout for room " +
                     std::to_string(reservation->get_room().get_number()));
     }
   }
@@ -108,7 +108,7 @@ void Simulation::process_guest_checkout_requests(
 void Simulation::schedule_check_in_and_check_out(unsigned int hour,
                                                  unsigned int minute,
                                                  unsigned int weekday) {
-  if (hotel_.get_actual_failure()) {
+  if (hotel_.get_evacuation()) {
     return;
   }
 
@@ -148,9 +148,8 @@ void Simulation::schedule_check_in_and_check_out(unsigned int hour,
         pending_reception_.push_back(PendingReceptionTask{
             reservation, false, receptionist->get_uid()});
         log_event(sim_event_category::check_in,
-                  "Przypisano recepcjonistke " +
-                      std::to_string(receptionist->get_uid()) +
-                      " do pokoju nr " +
+                  "Receptionist " + std::to_string(receptionist->get_uid()) +
+                      " assigned to room " +
                       std::to_string(reservation->get_room().get_number()));
       } else {
         apply_guest_satisfaction_penalty(reservation, 2);
@@ -171,9 +170,8 @@ void Simulation::schedule_check_in_and_check_out(unsigned int hour,
         pending_reception_.push_back(PendingReceptionTask{
             reservation, true, receptionist->get_uid()});
         log_event(sim_event_category::checkout,
-                  "Przypisano recepcjonistke " +
-                      std::to_string(receptionist->get_uid()) +
-                      " do wymeldowania pokoju nr " +
+                  "Receptionist " + std::to_string(receptionist->get_uid()) +
+                      " assigned to checkout room " +
                       std::to_string(reservation->get_room().get_number()));
       } else {
         apply_guest_satisfaction_penalty(reservation, 1);

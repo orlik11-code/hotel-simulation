@@ -7,7 +7,7 @@
 
 struct HotelReport {
     int balance = 0;
-    unsigned int guest_count = 0;
+    unsigned int guest_count = 0;  // liczba gosci, ktorzy zameldowali sie w hotelu
     unsigned int average_satisfaction = 0;  // 0 gdy brak gosci
     std::string rating_label;
 };
