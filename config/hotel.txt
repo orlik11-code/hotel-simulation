@@ -501,3 +501,46 @@ type=VIP
 name=Isabella
 surname=Conti
 
+# 303 — VIP rodzina
+[reservation]
+room_number=303
+check_in=2026-06-03
+check_out=2026-06-07
+hour_check_in=13
+minute_check_in=30
+hour_check_out=10
+minute_check_out=30
+food_included=true
+food_price=95
+
+[reservation_guest]
+type=VIP
+name=Henri
+surname=Dubois
+
+[reservation_guest]
+type=VIP
+name=Claire
+surname=Dubois
+
+[reservation_guest]
+type=VIP
+name=Louis
+surname=Dubois
+
+# 304 — VIP krótki pobyt
+[reservation]
+room_number=304
+check_in=2026-06-02
+check_out=2026-06-03
+hour_check_in=12
+minute_check_in=0
+hour_check_out=8
+minute_check_out=0
+food_included=true
+food_price=80
+
+[reservation_guest]
+type=VIP
+name=Natalia
+surname=Orlov
