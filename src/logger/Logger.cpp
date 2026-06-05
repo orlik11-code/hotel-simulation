@@ -32,11 +32,12 @@ void Logger::prepare_log(int tick_start, int tick_end,
                              return record.second < tick_to_cmp;
                            });
 
-      if (it != records.end() && it->second == act_tick) {
+      while (it != records.end() && it->second == act_tick) {
         log_file << '[' << simulation.format_virtual_time_for_tick(
                               static_cast<unsigned int>(act_tick))
                  << "] [" << category << "] " << it->first << '\n';
         log_file.flush();
+        ++it;
       }
     }
     act_tick += frequency;
