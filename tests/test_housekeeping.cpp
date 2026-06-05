@@ -51,7 +51,7 @@ TEST_CASE("Hotel cleans room after housekeeper finishes task") {
   REQUIRE(hotel.dispatch_housekeeping(12U, 0U) == 1U);
 
   for (unsigned int i = 0U; i < 60U; ++i) {
-    hotel.tick(1U);
+    hotel.tick(1U, 12U, 0U);
     hotel.apply_completed_housekeeping();
   }
 
