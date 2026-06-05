@@ -1,7 +1,5 @@
 #include "staff/Waiter.hpp"
 
-#include <iostream>
-
 unsigned int Waiter::max_shift_duration_hours() const noexcept
 {
     return 12U;
@@ -24,13 +22,11 @@ bool Waiter::can_handle(const Task& task, Weekday weekday, unsigned int hour_of_
 void Waiter::do_work(const Task& task, Weekday weekday, unsigned int hour_of_day)
 {
     if (!process_fatigue(task, weekday, hour_of_day)) {
-        std::cout << "Waiter " << name << " cannot process this task right now.\n";
         return;
     }
     is_busy = true;
     remaining_task_minutes = task.duration_minutes;
     current_task = task;
-    std::cout << "Waiter " << name << " served an order.\n";
 }
 
 void Waiter::determine_schedule(Weekday day, Shift shift_type)

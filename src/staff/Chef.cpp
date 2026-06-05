@@ -1,7 +1,5 @@
 #include "staff/Chef.hpp"
 
-#include <iostream>
-
 unsigned int Chef::max_shift_duration_hours() const noexcept
 {
     return 6U;
@@ -29,13 +27,11 @@ bool Chef::can_handle(const Task& task, Weekday weekday, unsigned int hour_of_da
 void Chef::do_work(const Task& task, Weekday weekday, unsigned int hour_of_day)
 {
     if (!process_fatigue(task, weekday, hour_of_day)) {
-        std::cout << "Chef " << name << " cannot process this task right now.\n";
         return;
     }
     is_busy = true;
     remaining_task_minutes = task.duration_minutes;
     current_task = task;
-    std::cout << "Chef " << name << " prepared a meal.\n";
 }
 
 void Chef::determine_schedule(Weekday day, Shift shift_type)
