@@ -1213,3 +1213,17 @@ end=19
 day=sunday
 start=11
 end=19
+
+# =============================================================================
+# RESTAURACJA — śniadania i kolacje
+# =============================================================================
+
+[meal_service]
+type=breakfast
+start_hour=7
+end_hour=10
+
+[meal_service]
+type=dinner
+start_hour=17
+end_hour=20
