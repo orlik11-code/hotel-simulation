@@ -461,7 +461,8 @@ void flush_worker(Hotel &hotel, WorkerDraft &draft, unsigned int line_no) {
                                 std::to_string(*draft.uid));
   }
 
-  hotel.add_worker(make_worker(draft, line_no));
+  std::unique_ptr<Staff> worker_up = make_worker(draft, line_no);
+  hotel.add_worker(std::move(worker_up));
 
   Staff *worker = hotel.find_by_uid(*draft.uid);
   if (worker == nullptr) {
@@ -545,10 +546,11 @@ void flush_reservation(Hotel &hotel, LoadContext &ctx, ReservationDraft &draft,
   }
 
   Room *room = room_it->second;
-  hotel.add_reservation(std::make_unique<Reservation>(
+  std::unique_ptr<Reservation> reservation = std::make_unique<Reservation>(
       std::move(people), room, *draft.check_in, *draft.check_out,
       draft.food_included, draft.food_price, draft.hour_check_in,
-      draft.minute_check_in, draft.hour_check_out, draft.minute_check_out));
+      draft.minute_check_in, draft.hour_check_out, draft.minute_check_out);
+  hotel.add_reservation(std::move(reservation));
 
   draft = ReservationDraft{};
 }
