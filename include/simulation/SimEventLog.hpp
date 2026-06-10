@@ -6,26 +6,26 @@
 #include <utility>
 #include <vector>
 
-/** Wiadomość + liczba (domyślnie tick symulacji). */
+/** Message + tick number (default: simulation tick). */
 using SimEventRecord = std::pair<std::string, int>;
 
-/** map<string, vector<pair<string,int>>> — odczyt: Konrad (Logger), zapis: Simulation. */
+/** map<string, vector<pair<string,int>>> — read: Logger, write: Simulation. */
 using SimEventLog = std::map<std::string, std::vector<SimEventRecord>>;
 
 namespace sim_event_category {
 
-inline constexpr const char *czas = "czas";
-inline constexpr const char *sprzatanie = "sprzatanie";
+inline constexpr const char *time = "time";
+inline constexpr const char *housekeeping = "housekeeping";
 inline constexpr const char *check_in = "check_in";
 inline constexpr const char *checkout = "checkout";
-inline constexpr const char *awaria = "awaria";
-inline constexpr const char *symulacja = "symulacja";
-inline constexpr const char *restauracja = "restauracja";
-inline constexpr const char *rezerwacja = "rezerwacja";
+inline constexpr const char *failure = "failure";
+inline constexpr const char *simulation = "simulation";
+inline constexpr const char *restaurant = "restaurant";
+inline constexpr const char *reservation = "reservation";
 
 [[nodiscard]] inline std::set<std::string> all_categories() {
-  return {czas,         sprzatanie, check_in, checkout, awaria,
-          symulacja,    restauracja, rezerwacja};
+  return {time,        housekeeping, check_in, checkout, failure,
+          simulation,  restaurant,   reservation};
 }
 
 } // namespace sim_event_category

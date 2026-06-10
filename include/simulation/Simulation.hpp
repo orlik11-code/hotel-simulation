@@ -40,7 +40,7 @@ public:
   [[nodiscard]] std::string format_virtual_time_for_tick(unsigned int tick) const;
 
 private:
-  // --- Stan ---
+  // --- State ---
   Hotel hotel_;
   SimConfig config_;
   unsigned int current_tick_ = 0U;
@@ -60,14 +60,14 @@ private:
   SimEventLog event_log_;
   HotelReport hotel_report_;
 
-  // --- Log i czas ---
+  // --- Logging and time ---
   void log_event(const std::string &category, const std::string &message);
   [[nodiscard]] bool should_print_to_console(const std::string &category) const;
   [[nodiscard]] std::string format_virtual_time() const;
   [[nodiscard]] std::chrono::sys_days
   date_from_day_offset(unsigned int days_elapsed) const noexcept;
 
-  // --- Fazy ticka ---
+  // --- Tick phases ---
   void tick_advance_hotel_clock();
   void tick_resolve_maintenance();
   void tick_process_reception_queue();
@@ -80,10 +80,10 @@ private:
   void tick_dispatch_housekeeping(unsigned int hour, unsigned int weekday);
   void tick_log_time_step(unsigned int hour, unsigned int weekday);
 
-  // --- Awaria ---
+  // --- Failures ---
   void try_fix_failure();
 
-  // --- Recepcja ---
+  // --- Reception ---
   void complete_pending_reception_tasks();
   void process_guest_checkout_requests(std::chrono::sys_days today,
                                        unsigned int hour, unsigned int minute);
@@ -92,12 +92,12 @@ private:
   void apply_guest_satisfaction_penalty(Reservation *reservation,
                                         int penalty_points);
 
-  // --- Sprzątanie pokoi ---
+  // --- Housekeeping ---
   [[nodiscard]] bool should_run_daily_dirty(unsigned int hour_of_day,
                                           std::chrono::sys_days today) const;
   void process_daily_dirty_rooms(std::chrono::sys_days today);
 
-  // --- Posiłki ---
+  // --- Meals ---
   [[nodiscard]] std::optional<MealType> current_meal_slot(unsigned int hour) const;
   [[nodiscard]] const MealServiceWindow *
   find_meal_window(MealType meal_type) const noexcept;
@@ -116,7 +116,7 @@ private:
   void complete_pending_meal_tasks();
   void dispatch_meals(MealType slot, unsigned int hour, unsigned int weekday);
 
-    // -- raport --
+    // --- Report ---
   HotelReport build_hotel_report() const;
   void refresh_hotel_report();
   void publish_hotel_report() const;
