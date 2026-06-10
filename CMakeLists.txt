@@ -50,7 +50,6 @@ add_library(hotel_logic
     include/logger/Logger.hpp
     src/logger/Logger.cpp
     # config
-    include/file_parse.hpp
     include/config/file_parse.hpp
     include/config/sim_config_parse.hpp
     include/config/config_loader.hpp
@@ -139,7 +138,6 @@ if (BUILD_TESTING)
             tests/test_maintenance.cpp
             tests/test_hotel_event.cpp
             tests/test_meal_dispatch.cpp
-                include/simulation/HotelReport.h
         )
         target_link_libraries(Catch2Units PRIVATE hotel_logic Catch2::Catch2WithMain)
         add_test(NAME Catch2Units COMMAND Catch2Units)

@@ -24,7 +24,7 @@ split_key_value(const std::string &line, unsigned int line_no);
 [[nodiscard]] unsigned int parse_percent(const std::string &value,
                                          const std::string &field);
 
-/** Formatuje wartość z parse_percent (setne procenta) do tekstu, np. 5 → "0.5%". */
+/** Formats parse_percent value (tenths of a percent) as text, e.g. 5 → "0.5%". */
 [[nodiscard]] std::string format_probability_tenths(unsigned int tenths);
 
 /** @throws std::invalid_argument if value is not YYYY-MM-DD or not a valid date */

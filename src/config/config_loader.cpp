@@ -67,7 +67,6 @@ SimConfig Config_loader::from_argv(int argc, char *argv[],
     } else if (arg == "--log-file-every-n-ticks" && i + 1 < argc) {
       config.log_file_every_n_ticks =
           file_parse::parse_non_negative(argv[++i], "log_file_every_n_ticks");
-    } else if (arg == "--live-log" && i + 1 < argc) {
     }
 
   }
@@ -97,7 +96,7 @@ void Config_loader::print_usage(const char *program_name) {
             << "  --minutes-per-tick <n>  Model minutes per tick (default 60)\n"
             << "  --max-ticks <n>         Run n ticks (0 = full simulated day, default 0)\n"
             << "  --event-probability <n> Event chance per tick, 0.5–30 (default 5)\n"
-            << "  --log-every-n-ticks <n> Print [czas] log every n ticks (default 1)\n"
+            << "  --log-every-n-ticks <n> Print [time] log every n ticks (default 1)\n"
             << "  --log-file <path>       Export event log to file after run\n"
             << "  --log-file-every-n-ticks <n> File export step (0 = same as console)\n"
             << "  -h, --help              Show this message\n\n"
