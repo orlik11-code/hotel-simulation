@@ -69,7 +69,8 @@ public:
   [[nodiscard]] unsigned int get_hotel_hour_end() const noexcept;
   bool set_actual_failure(bool value);
   void add_worker(std::unique_ptr<Staff> worker);
-  void tick(unsigned int elapsed_minutes);
+  void tick(unsigned int elapsed_minutes, unsigned int hour_of_day,
+            unsigned int weekday_index);
 
   Staff *find_by_uid(unsigned int uid);
   std::vector<Staff *> find_by_role(StaffRole role);
@@ -120,6 +121,9 @@ public:
                                                    unsigned int weekday_index);
 
   [[nodiscard]] bool has_pending_maintenance() const;
+  /** Czy którykolwiek konserwator jest na zmianie i może przyjąć FixFailure. */
+  [[nodiscard]] bool has_maintenance_on_shift(unsigned int hour_of_day,
+                                              unsigned int weekday_index) const;
   /** Kończy naprawę: gdy konserwator skończył FixFailure → actual_failure =
    * false. */
   void apply_completed_maintenance();

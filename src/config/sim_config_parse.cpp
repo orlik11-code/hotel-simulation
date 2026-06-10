@@ -25,6 +25,14 @@ void apply_key(SimConfig &config, const std::string &key,
       throw std::invalid_argument("meal_attendance_percent cannot exceed 100");
     }
     config.meal_attendance_percent = percent;
+  } else if (key == "log_every_n_ticks") {
+    config.log_every_n_ticks =
+        file_parse::parse_positive(value, "log_every_n_ticks");
+  } else if (key == "log_file_every_n_ticks") {
+    config.log_file_every_n_ticks =
+        file_parse::parse_non_negative(value, "log_file_every_n_ticks");
+  } else if (key == "log_file") {
+    config.log_file = value;
   } else {
     throw std::invalid_argument("Unknown simulation key: " + key);
   }

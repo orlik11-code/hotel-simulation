@@ -28,8 +28,8 @@ TripleRoom::TripleRoom(double area, unsigned int number, unsigned int floor,
 }
 
 unsigned int TripleRoom::calculateNightlyPrice() const {
-  unsigned int base_price = 220;
-  unsigned int floor_addon = 20 * get_floor();
+  unsigned int base_price = 750;
+  unsigned int floor_addon = 70 * get_floor();
   const unsigned int res = base_price + floor_addon;
   return res;
 }

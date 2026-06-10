@@ -1,11 +1,17 @@
 #include "staff/Staff.hpp"
 
 #include <algorithm>
-#include <iostream>
 #include <stdexcept>
 
 namespace {
 constexpr unsigned int kMaxFatigue = 100U;
+constexpr unsigned int kNightHourStart = 22U;
+constexpr unsigned int kNightHourEnd = 6U;
+
+[[nodiscard]] bool is_night_hour(unsigned int hour_of_day) noexcept {
+  const unsigned int h = hour_of_day % 24U;
+  return h >= kNightHourStart || h < kNightHourEnd;
+}
 
 [[nodiscard]] unsigned int shift_duration_hours(const Shift& s) noexcept
 {
@@ -91,9 +97,35 @@ bool Staff::process_fatigue(const Task& task, Weekday weekday, unsigned int hour
 
 unsigned int Staff::calculate_task_payment(const Task& task, unsigned int role_bonus) const noexcept
 {
-    const unsigned int hourly_rate = task.night_shift ? salary + salary_night : salary;
-    const unsigned int time_cost = (hourly_rate * task.duration_minutes) / 60U;
-    return time_cost + task.bonus + role_bonus;
+    return task.bonus + role_bonus;
+}
+
+unsigned int Staff::shift_hourly_rate(unsigned int hour_of_day,
+                                      unsigned int weekday_index) const noexcept
+{
+    const Shift& shift = working_hours[weekday_index % 7U];
+    if (shift.start_hour == 0U && shift.end_hour == 0U) {
+        return is_night_hour(hour_of_day) ? salary + salary_night : salary;
+    }
+    if (shift.night_shift) {
+        return salary + salary_night;
+    }
+    return salary;
+}
+
+unsigned int Staff::accrue_shift_pay(unsigned int elapsed_minutes,
+                                     unsigned int hour_of_day,
+                                     unsigned int weekday_index) noexcept
+{
+    if (!is_on_shift(hour_of_day, weekday_index)) {
+        return 0U;
+    }
+    const unsigned int rate = shift_hourly_rate(hour_of_day, weekday_index);
+    const unsigned int pay = (rate * elapsed_minutes) / 60U;
+    if (pay > 0U) {
+        to_be_paid += pay;
+    }
+    return pay;
 }
 
 void Staff::rest_tick(unsigned int elapsed_minutes) noexcept
@@ -235,22 +267,23 @@ const Task& Staff::get_current_task() const noexcept
     return current_task;
 }
 
-void Staff::process_tick(unsigned int elapsed_minutes)
+void Staff::process_tick(unsigned int elapsed_minutes, unsigned int hour_of_day,
+                         unsigned int weekday_index)
 {
+    accrue_shift_pay(elapsed_minutes, hour_of_day, weekday_index);
+
     if (is_busy) {
         if (remaining_task_minutes <= elapsed_minutes) {
             is_busy = false;
             remaining_task_minutes = 0;
             increase_fatigue(current_task.difficulty);
             const unsigned int bonus = receive_bonus();
-            to_be_paid += calculate_task_payment(current_task, bonus);
-
-            std::cout << get_first_name() << " " << get_last_name()
-                      << " ended task! Now fatigue: " << get_fatigue() << ". You owe him: " << get_to_pay() << "\n";
+            const unsigned int payment = calculate_task_payment(current_task, bonus);
+            to_be_paid += payment;
         } else {
             remaining_task_minutes -= elapsed_minutes;
         }
-    } else {
+    } else if (!is_on_shift(hour_of_day, weekday_index)) {
         rest_tick(elapsed_minutes);
     }
 }

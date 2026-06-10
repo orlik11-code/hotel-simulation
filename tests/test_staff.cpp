@@ -52,7 +52,7 @@ TEST_CASE("Role mapping and task matching work for each class")
     REQUIRE_FALSE(maintenance.can_handle(Task{TaskType::FixFailure, 1U, 1U, 0U, true}, kSimWeekday, kSimHour));
 }
 
-TEST_CASE("Payment formula includes hours night premium task and role bonuses")
+TEST_CASE("Payment formula includes shift pay task and role bonuses")
 {
     Receptionist receptionist(10U, "R", "R", 10U, 3U, 1U);
     Housekeeper housekeeper(11U, "H", "H", 10U, 3U, 1U);
@@ -62,28 +62,28 @@ TEST_CASE("Payment formula includes hours night premium task and role bonuses")
 
     const Task day_task{TaskType::CheckIn, 2U, 2U, 5U, false};
     receptionist.do_work(day_task, kSimWeekday, kSimHour);
-    receptionist.process_tick(task_minutes(2U));
-    REQUIRE(receptionist.get_to_pay() == 25U); // 10*2 + bonus 5 + receive_bonus(difficulty/4)
+    receptionist.process_tick(task_minutes(2U), kSimHour, 0U);
+    REQUIRE(receptionist.get_to_pay() == 25U); // 2h shift (20) + bonus 5
 
     const Task clean_task{TaskType::CleanRoom, 2U, 2U, 5U, false};
     housekeeper.do_work(clean_task, kSimWeekday, kSimHour);
-    housekeeper.process_tick(task_minutes(2U));
+    housekeeper.process_tick(task_minutes(2U), kSimHour, 0U);
     REQUIRE(housekeeper.get_to_pay() == 25U);
 
     const Task cook_task{TaskType::CookMeal, 2U, 2U, 5U, true};
     chef.do_work(cook_task, kSimWeekday, kSimHour);
-    chef.process_tick(task_minutes(2U));
-    REQUIRE(chef.get_to_pay() == 32U); // (10+3)*2 + bonus 5 + receive_bonus((2*2)/3)
+    chef.process_tick(task_minutes(2U), kSimHour, 0U);
+    REQUIRE(chef.get_to_pay() == 26U); // 2h shift (20) + bonus 5 + role bonus 1
 
     const Task serve_task{TaskType::ServeMeal, 1U, 4U, 1U, false};
     waiter.do_work(serve_task, kSimWeekday, kSimHour);
-    waiter.process_tick(task_minutes(1U));
-    REQUIRE(waiter.get_to_pay() == 11U);
+    waiter.process_tick(task_minutes(1U), kSimHour, 0U);
+    REQUIRE(waiter.get_to_pay() == 11U); // 1h shift (10) + bonus 1
 
     const Task fix_task{TaskType::FixFailure, 3U, 2U, 0U, false};
     maintenance.do_work(fix_task, kSimWeekday, kSimHour);
-    maintenance.process_tick(task_minutes(3U));
-    REQUIRE(maintenance.get_to_pay() == 36U);
+    maintenance.process_tick(task_minutes(3U), kSimHour, 0U);
+    REQUIRE(maintenance.get_to_pay() == 530U); // 3h shift (30) + emergency 500
 }
 
 TEST_CASE("Night restrictions prevent housekeeper and maintenance work")
@@ -107,11 +107,11 @@ TEST_CASE("Fatigue grows with work and can be reduced by rest")
 
     const Task cook_task{TaskType::CookMeal, 1U, 2U, 0U, false};
     chef.do_work(cook_task, kSimWeekday, kSimHour);
-    chef.process_tick(task_minutes(1U)); // +50 fatigue (rate 25 * difficulty 2)
+    chef.process_tick(task_minutes(1U), kSimHour, 0U); // +50 fatigue (rate 25 * difficulty 2)
     REQUIRE_FALSE(chef.is_tired());
 
     chef.do_work(cook_task, kSimWeekday, kSimHour);
-    chef.process_tick(task_minutes(1U)); // +50 fatigue => 100
+    chef.process_tick(task_minutes(1U), kSimHour, 0U); // +50 fatigue => 100
     REQUIRE(chef.is_tired());
 
     const unsigned int pay_before_blocked_work = chef.get_to_pay();
@@ -135,19 +135,36 @@ TEST_CASE("Polymorphic collection executes overridden methods")
 
     for (const auto& worker : team) {
         worker->do_work(check_in, kSimWeekday, kSimHour);
-        worker->process_tick(task_minutes(1U));
+        worker->process_tick(task_minutes(1U), kSimHour, 0U);
         worker->do_work(clean_room, kSimWeekday, kSimHour);
-        worker->process_tick(task_minutes(1U));
+        worker->process_tick(task_minutes(1U), kSimHour, 0U);
         worker->do_work(fix_night, kSimWeekday, kSimHour);
-        worker->process_tick(task_minutes(1U));
+        worker->process_tick(task_minutes(1U), kSimHour, 0U);
     }
 
-    REQUIRE(team[0]->get_to_pay() == 10U); // receptionist: only check-in
-    REQUIRE(team[1]->get_to_pay() == 10U); // housekeeper: only clean-room
-    REQUIRE(team[2]->get_to_pay() == 0U);  // maintenance: task was night-only
+    REQUIRE(team[0]->get_to_pay() == 30U); // receptionist: 3h shift, one check-in
+    REQUIRE(team[1]->get_to_pay() == 30U); // housekeeper: 3h shift, one clean-room
+    REQUIRE(team[2]->get_to_pay() == 30U); // maintenance: 3h shift, night fix rejected
     REQUIRE(team[0]->get_uid() == 1001U);
     REQUIRE(team[1]->get_uid() == 1002U);
     REQUIRE(team[2]->get_uid() == 1003U);
+}
+
+TEST_CASE("Fatigue recovers only outside scheduled shift")
+{
+    Housekeeper housekeeper(22U, "H", "H", 10U, 3U, 5U);
+    Shift day_shift{};
+    day_shift.weekday = Weekday::monday;
+    day_shift.start_hour = 8U;
+    day_shift.end_hour = 16U;
+    housekeeper.determine_schedule(Weekday::monday, day_shift);
+    housekeeper.increase_fatigue(8U); // fatigue_rate 5 -> 40 points
+
+    housekeeper.process_tick(60U, 10U, 0U);
+    REQUIRE(housekeeper.get_fatigue() == 40U);
+
+    housekeeper.process_tick(600U, 22U, 0U);
+    REQUIRE(housekeeper.get_fatigue() < 40U);
 }
 
 TEST_CASE("Receptionist determine_schedule sets daytime shift on Monday")

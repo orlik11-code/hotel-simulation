@@ -2,6 +2,8 @@
 
 #include <chrono>
 #include <cmath>
+#include <iomanip>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -77,12 +79,19 @@ unsigned int parse_percent(const std::string &value, const std::string &field) {
     if (parsed > 30.0) {
       throw std::invalid_argument(field + " cannot exceed 30");
     }
-    return static_cast<unsigned int>(std::lround(parsed));
+    return static_cast<unsigned int>(std::lround(parsed * 10.0));
   } catch (const std::invalid_argument &) {
     throw;
   } catch (const std::exception &) {
     throw std::invalid_argument("Invalid value for " + field + ": " + value);
   }
+}
+
+std::string format_probability_tenths(unsigned int tenths) {
+  std::ostringstream out;
+  out << std::fixed << std::setprecision(1)
+      << (static_cast<double>(tenths) / 10.0) << '%';
+  return out.str();
 }
 
 std::chrono::year_month_day parse_date(const std::string &value,

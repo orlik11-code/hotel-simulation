@@ -6,6 +6,8 @@
 class MaintenanceWorker final : public Staff {
 protected:
     [[nodiscard]] unsigned int max_shift_duration_hours() const noexcept override;
+    [[nodiscard]] unsigned int calculate_task_payment(const Task& task,
+                                                      unsigned int role_bonus) const noexcept override;
 
 public:
     using Staff::Staff;

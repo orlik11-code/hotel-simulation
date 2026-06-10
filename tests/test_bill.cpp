@@ -21,9 +21,9 @@ TEST_CASE("Bill calculation logic with unique_ptr") {
     Reservation res(std::move(guests), &room, check_in, check_out, true, 50);
     Bill bill(res);
 
-    // TripleRoom nightly: 220 + (20 * 1) = 240
-    // (3 nights * 240) + (50 food * 2 people) = 720 + 100 = 820
-    CHECK(bill.get_total_bill() == 820);
+    // TripleRoom nightly: 750 + (70 * 1) = 820
+    // (3 nights * 820) + (3 nights * 50 food * 2 people) = 2460 + 300 = 2760
+    CHECK(bill.get_total_bill() == 2760);
   }
 
   SUBCASE("Bill without food included") {
@@ -33,7 +33,7 @@ TEST_CASE("Bill calculation logic with unique_ptr") {
     Reservation res(std::move(guests2), &room, check_in, check_out, false, 50);
     Bill bill(res);
 
-    // (3 nights * 240) + 0 = 720
-    CHECK(bill.get_total_bill() == 720);
+    // (3 nights * 820) + 0 = 2460
+    CHECK(bill.get_total_bill() == 2460);
   }
 }

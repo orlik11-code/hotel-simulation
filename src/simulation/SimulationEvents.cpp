@@ -1,5 +1,7 @@
 #include "simulation/Simulation.hpp"
 
+#include "config/file_parse.hpp"
+
 #include <stdexcept>
 #include <string>
 
@@ -11,23 +13,31 @@ constexpr unsigned int kNoShowGraceMinutes = 120U;
 } // namespace
 
 void Simulation::try_fix_failure() {
+  const unsigned int hour = hour_of_day();
+  const unsigned int day = weekday();
+  const bool maintenance_available = hotel_.has_maintenance_on_shift(hour, day);
+
   if (hotel_.has_pending_maintenance()) {
-    time_with_fail_ += config_.minutesPerTick;
-    if (time_with_fail_ >= kFailureDestroyAfterMinutes) {
-      throw std::runtime_error("Hotel has been destroyed");
+    if (maintenance_available) {
+      time_with_fail_ += config_.minutesPerTick;
+      if (time_with_fail_ >= kFailureDestroyAfterMinutes) {
+        throw std::runtime_error("Hotel has been destroyed");
+      }
     }
     return;
   }
 
-  if (hotel_.try_assign_maintenance(hour_of_day(), weekday())) {
+  if (hotel_.try_assign_maintenance(hour, day)) {
     log_event(sim_event_category::awaria,
-              "Przypisano konserwatora do naprawy awarii.");
+              "Maintenance worker assigned to fix failure.");
     return;
   }
 
-  time_with_fail_ += config_.minutesPerTick;
-  if (time_with_fail_ >= kFailureDestroyAfterMinutes) {
-    throw std::runtime_error("Hotel has been destroyed");
+  if (maintenance_available) {
+    time_with_fail_ += config_.minutesPerTick;
+    if (time_with_fail_ >= kFailureDestroyAfterMinutes) {
+      throw std::runtime_error("Hotel has been destroyed");
+    }
   }
 }
 
@@ -43,7 +53,7 @@ void Simulation::tick_resolve_maintenance() {
     active_event_->clear();
     active_event_.reset();
   }
-  log_event(sim_event_category::awaria, "Awaria naprawiona.");
+  log_event(sim_event_category::awaria, "Failure repaired.");
 }
 
 void Simulation::tick_process_failures_and_random_events() {
@@ -57,8 +67,13 @@ void Simulation::tick_process_failures_and_random_events() {
     active_event_ = std::move(event);
     active_event_->apply();
     log_event(sim_event_category::awaria,
-              std::string(active_event_->description()) + " (szansa " +
-                  std::to_string(config_.event_probability) + "%).");
+              std::string(active_event_->description()) + " (chance " +
+                  file_parse::format_probability_tenths(config_.event_probability) +
+                  ").");
+    if (hotel_.get_evacuation()) {
+      log_event(sim_event_category::awaria,
+                "Evacuation — check-ins suspended until alarm is cleared.");
+    }
     try_fix_failure();
   }
 }
@@ -79,16 +94,7 @@ void Simulation::tick_evaluate_hotel_cancellations(unsigned int hour,
                                                    unsigned int minute) {
   const std::chrono::sys_days today = actual_date();
 
-  if (hotel_.get_evacuation()) {
-    for (Reservation *reservation : hotel_.get_reservations()) {
-      if (reservation == nullptr || reservation->get_is_cancelled()) {
-        continue;
-      }
-      if (reservation->check_has_begun(today) &&
-          !reservation->is_checkout_settled()) {
-        schedule_cancellation(reservation);
-      }
-    }
+  if (hotel_.get_evacuation() || hotel_.get_actual_failure()) {
     return;
   }
 
@@ -118,7 +124,7 @@ void Simulation::process_cancellations() {
     const unsigned int room_nr = reservation->get_room().get_number();
     hotel_.cancel_reservation(reservation, actual_date());
     log_event(sim_event_category::rezerwacja,
-              "Hotel anulowal rezerwacje pokoju nr " +
+              "Hotel cancelled reservation for room " +
                   std::to_string(room_nr));
   }
   pending_cancellations_.clear();

@@ -1,7 +1,5 @@
 #include "staff/Housekeeper.hpp"
 
-#include <iostream>
-
 unsigned int Housekeeper::max_shift_duration_hours() const noexcept
 {
     return 8U;
@@ -29,13 +27,11 @@ bool Housekeeper::can_handle(const Task& task, Weekday weekday, unsigned int hou
 void Housekeeper::do_work(const Task& task, Weekday weekday, unsigned int hour_of_day)
 {
     if (!process_fatigue(task, weekday, hour_of_day)) {
-        std::cout << "Housekeeper " << name << " cannot process this task right now.\n";
         return;
     }
     is_busy = true;
     remaining_task_minutes = task.duration_minutes;
     current_task = task;
-    std::cout << "Housekeeper " << name << " cleaned a room.\n";
 }
 
 void Housekeeper::determine_schedule(Weekday day, Shift shift_type)

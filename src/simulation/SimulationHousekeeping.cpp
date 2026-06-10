@@ -37,8 +37,8 @@ void Simulation::process_daily_dirty_rooms(std::chrono::sys_days today) {
 
   last_daily_dirty_date_ = today;
   std::ostringstream msg;
-  msg << "Dzienny reset o " << hotel_.get_hotel_hour_start()
-      << ":00 — oznaczono " << marked << " pokoi jako brudne.";
+  msg << "Daily reset at " << hotel_.get_hotel_hour_start()
+      << ":00 — marked " << marked << " rooms dirty.";
   log_event(sim_event_category::sprzatanie, msg.str());
 }
 
@@ -65,9 +65,9 @@ void Simulation::tick_dispatch_housekeeping(unsigned int hour,
   }
 
   std::ostringstream msg;
-  msg << "brudne: " << hk_stats.dirty_rooms << ", w kolejce: "
+  msg << "dirty: " << hk_stats.dirty_rooms << ", queued: "
       << hk_stats.need_assignment
-      << ", pokojowki wolne: " << hk_stats.housekeepers_free
-      << ", przypisano: " << hk_assigned;
+      << ", housekeepers free: " << hk_stats.housekeepers_free
+      << ", assigned: " << hk_assigned;
   log_event(sim_event_category::sprzatanie, msg.str());
 }

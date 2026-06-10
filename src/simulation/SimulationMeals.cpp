@@ -129,8 +129,8 @@ void Simulation::ensure_meal_attendance_plans(MealType slot,
     } else {
       meal_no_shows_.push_back(MealNoShowRecord{reservation, slot, today});
       log_event(sim_event_category::restauracja,
-                "Gosc nie przyszedl na " +
-                    std::string(meal_type_label(slot)) + " (pokoj nr " +
+                "Guest no-show for " +
+                    std::string(meal_type_label(slot)) + " (room " +
                     std::to_string(reservation->get_room().get_number()) + ")");
     }
   }
@@ -172,8 +172,8 @@ void Simulation::complete_pending_meal_tasks() {
       it->phase = MealPhase::Ready;
       it->worker_uid = 0U;
       log_event(sim_event_category::restauracja,
-                "Posilek " + std::string(meal_type_label(it->meal_type)) +
-                    " gotowy (pokoj nr " + std::to_string(room_nr) + ")");
+                std::string(meal_type_label(it->meal_type)) +
+                    " ready (room " + std::to_string(room_nr) + ")");
       ++it;
       continue;
     }
@@ -188,8 +188,8 @@ void Simulation::complete_pending_meal_tasks() {
     meals_served_.push_back(
         MealServedRecord{it->reservation, it->meal_type, today});
     log_event(sim_event_category::restauracja,
-              "Podano " + std::string(meal_type_label(it->meal_type)) +
-                  " (pokoj nr " + std::to_string(room_nr) + ")");
+              "Served " + std::string(meal_type_label(it->meal_type)) +
+                  " (room " + std::to_string(room_nr) + ")");
     it = pending_meals_.erase(it);
   }
 }
@@ -251,8 +251,8 @@ void Simulation::dispatch_meals(MealType slot, unsigned int hour,
         rooms << reservation->get_room().get_number();
       }
       log_event(sim_event_category::restauracja,
-                "Kucharz " + std::to_string(chef->get_uid()) + " gotuje " +
-                    meal_type_label(slot) + " dla pokoi: " + rooms.str());
+                "Chef " + std::to_string(chef->get_uid()) + " cooking " +
+                    meal_type_label(slot) + " for rooms: " + rooms.str());
       continue;
     }
 
@@ -261,8 +261,8 @@ void Simulation::dispatch_meals(MealType slot, unsigned int hour,
       apply_guest_satisfaction_penalty(reservation, 1);
     }
     log_event(sim_event_category::restauracja,
-              "Brak wolnego kucharza na " + std::string(meal_type_label(slot)) +
-                  " (" + std::to_string(batch.size()) + " pokoi)");
+              "No available chef for " + std::string(meal_type_label(slot)) +
+                  " (" + std::to_string(batch.size()) + " rooms)");
   }
 
   for (Reservation *reservation : hotel_.get_reservations()) {
@@ -294,14 +294,14 @@ void Simulation::dispatch_meals(MealType slot, unsigned int hour,
       if (waiter != nullptr) {
         pending.worker_uid = waiter->get_uid();
         log_event(sim_event_category::restauracja,
-                  "Kelner " + std::to_string(waiter->get_uid()) + " podaje " +
-                      meal_type_label(slot) + " (pokoj nr " +
+                  "Waiter " + std::to_string(waiter->get_uid()) + " serving " +
+                      meal_type_label(slot) + " (room " +
                       std::to_string(room_nr) + ")");
       } else {
         apply_guest_satisfaction_penalty(reservation, 1);
         log_event(sim_event_category::restauracja,
-                  "Brak wolnego kelnera na " +
-                      std::string(meal_type_label(slot)) + " (pokoj nr " +
+                  "No available waiter for " +
+                      std::string(meal_type_label(slot)) + " (room " +
                       std::to_string(room_nr) + ")");
       }
       break;

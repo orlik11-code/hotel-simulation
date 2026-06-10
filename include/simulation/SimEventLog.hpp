@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -21,5 +22,10 @@ inline constexpr const char *awaria = "awaria";
 inline constexpr const char *symulacja = "symulacja";
 inline constexpr const char *restauracja = "restauracja";
 inline constexpr const char *rezerwacja = "rezerwacja";
+
+[[nodiscard]] inline std::set<std::string> all_categories() {
+  return {czas,         sprzatanie, check_in, checkout, awaria,
+          symulacja,    restauracja, rezerwacja};
+}
 
 } // namespace sim_event_category

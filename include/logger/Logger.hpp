@@ -1,6 +1,7 @@
 #pragma once
-#include "../simulation/Simulation.hpp"
-#include <cstdio>
+
+#include "simulation/Simulation.hpp"
+
 #include <fstream>
 #include <set>
 #include <string>
@@ -9,13 +10,13 @@ class Logger {
 private:
   std::string file_path;
   std::ofstream log_file;
-  Simulation &simulation;
+  const Simulation &simulation;
   int frequency;
 
 public:
-  Logger(const std::string &path, Simulation &simulation, int frequency = 1);
+  Logger(const std::string &path, const Simulation &simulation, int frequency = 1);
   void prepare_log(int tick_start, int tick_end,
-                   std::set<std::string> categories);
+                   const std::set<std::string> &categories);
   ~Logger() = default;
 
   void set_frequency(int new_frequency);

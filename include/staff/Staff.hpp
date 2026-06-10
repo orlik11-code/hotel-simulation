@@ -26,7 +26,12 @@ protected:
     unsigned int fatigue_rate;
 
     bool process_fatigue(const Task& task, Weekday weekday, unsigned int hour_of_day) noexcept;
-    [[nodiscard]] unsigned int calculate_task_payment(const Task& task, unsigned int role_bonus) const noexcept;
+    [[nodiscard]] virtual unsigned int calculate_task_payment(const Task& task, unsigned int role_bonus) const noexcept;
+    [[nodiscard]] unsigned int shift_hourly_rate(unsigned int hour_of_day,
+                                               unsigned int weekday_index) const noexcept;
+    [[nodiscard]] unsigned int accrue_shift_pay(unsigned int elapsed_minutes,
+                                                unsigned int hour_of_day,
+                                                unsigned int weekday_index) noexcept;
 
     void store_day_shift(Weekday day, Shift shift_type);
 
@@ -42,7 +47,8 @@ public:
     virtual ~Staff() = default;
 
     /** elapsed_minutes — ile minut modelu mija w tym ticku (z SimConfig::minutesPerTick). */
-    void process_tick(unsigned int elapsed_minutes);
+    void process_tick(unsigned int elapsed_minutes, unsigned int hour_of_day,
+                      unsigned int weekday_index);
 
     [[nodiscard]] unsigned int get_uid() const noexcept;
     [[nodiscard]] std::string get_first_name() const noexcept;

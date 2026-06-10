@@ -126,9 +126,15 @@ bool Hotel::assign_first_available(StaffRole role, const Task &task,
          nullptr;
 }
 
-void Hotel::tick(unsigned int elapsed_minutes) {
+void Hotel::tick(unsigned int elapsed_minutes, unsigned int hour_of_day,
+                 unsigned int weekday_index) {
   std::ranges::for_each(workers, [&](const std::unique_ptr<Staff> &worker) {
-    worker->process_tick(elapsed_minutes);
+    const unsigned int owed_before = worker->get_to_pay();
+    worker->process_tick(elapsed_minutes, hour_of_day, weekday_index);
+    const unsigned int earned = worker->get_to_pay() - owed_before;
+    if (earned > 0U) {
+      change_balance(-static_cast<int>(earned));
+    }
   });
 }
 
@@ -146,9 +152,9 @@ void Hotel::removeRoom(unsigned int roomNumber) {
 
 void Hotel::showReport() const {
   for (const auto &room : rooms) {
-    std::cout << "Pokoj nr: " << room->get_number()
-              << " | Cena: " << room->calculateNightlyPrice()
-              << " | Obsluga: " << room->calculateStaffNeeded() << std::endl;
+    std::cout << "Room no: " << room->get_number()
+              << " | Price: " << room->calculateNightlyPrice()
+              << " | Staff needed: " << room->calculateStaffNeeded() << std::endl;
   }
 }
 
@@ -367,6 +373,22 @@ std::vector<std::unique_ptr<Guest>> &Hotel::emplace_guest_list() {
 
 bool Hotel::has_pending_maintenance() const {
   return !pending_maintenance.empty();
+}
+
+bool Hotel::has_maintenance_on_shift(unsigned int hour_of_day,
+                                     unsigned int weekday_index) const {
+  const Weekday wd = weekday_from_index(weekday_index);
+  const Task fix_probe = Task::make_fix_failure();
+
+  for (const std::unique_ptr<Staff> &worker : workers) {
+    if (worker == nullptr || worker->role() != StaffRole::MaintenanceWorker) {
+      continue;
+    }
+    if (worker->can_handle(fix_probe, wd, hour_of_day)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 void Hotel::apply_completed_maintenance() {

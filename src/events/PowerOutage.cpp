@@ -11,4 +11,4 @@ void PowerOutage::apply() {
 
 void PowerOutage::clear() { hotel.set_power(true); }
 
-const char *PowerOutage::description() const { return "Awaria zasilania"; }
+const char *PowerOutage::description() const { return "Power outage"; }

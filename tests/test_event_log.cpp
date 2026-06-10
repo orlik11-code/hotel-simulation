@@ -10,7 +10,6 @@ TEST_CASE("Simulation fills event log map during run") {
   cfg.max_ticks = 2U;
 
   Simulation simulation(cfg);
-  // FLAG FLAG
   simulation.set_live_console_output(false);
   REQUIRE(simulation.get_event_log().empty());
 
@@ -22,4 +21,21 @@ TEST_CASE("Simulation fills event log map during run") {
   REQUIRE(log.at(sim_event_category::czas).size() == 2U);
   REQUIRE(log.at(sim_event_category::czas)[0].second == 1);
   REQUIRE(log.at(sim_event_category::czas)[1].second == 2);
+}
+
+TEST_CASE("log_every_n_ticks throttles console but keeps full event log") {
+  SimConfig cfg;
+  cfg.minutesPerTick = 60U;
+  cfg.event_probability = 0U;
+  cfg.max_ticks = 6U;
+  cfg.log_every_n_ticks = 2U;
+
+  Simulation simulation(cfg);
+  simulation.set_live_console_output(true);
+  simulation.run();
+
+  const SimEventLog &log = simulation.get_event_log();
+  REQUIRE(log.at(sim_event_category::czas).size() == 6U);
+  REQUIRE(log.at(sim_event_category::czas)[1].first.find("2 ticks elapsed") !=
+          std::string::npos);
 }

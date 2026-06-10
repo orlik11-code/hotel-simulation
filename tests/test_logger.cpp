@@ -1,5 +1,6 @@
 #include "../include/doctest.h"
 #include "../include/logger/Logger.hpp"
+#include "../include/simulation/SimEventLog.hpp"
 #include "../include/simulation/Simulation.hpp"
 
 TEST_CASE("Logger initialization and configuration") {
@@ -45,12 +46,31 @@ TEST_CASE("Logger log generation logic") {
     std::string line;
     bool found = false;
     while (std::getline(file, line)) {
-      if (line.find("[10]") != std::string::npos) {
+      if (line.find("Current tick: 10") != std::string::npos) {
         found = true;
         break;
       }
     }
     CHECK(found);
+  }
+
+  SUBCASE("Exports one line per stored record in tick range") {
+    const SimEventLog &log = sim.get_event_log();
+    REQUIRE(log.contains("czas"));
+    const auto &records = log.at("czas");
+    REQUIRE(records.size() == 15U);
+
+    logger.prepare_log(1, 15, categories);
+
+    std::ifstream file("output.log");
+    std::string line;
+    unsigned int line_count = 0U;
+    while (std::getline(file, line)) {
+      if (!line.empty()) {
+        ++line_count;
+      }
+    }
+    CHECK(line_count == records.size());
   }
 }
 

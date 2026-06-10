@@ -1,7 +1,5 @@
 #include "staff/Receptionist.hpp"
 
-#include <iostream>
-
 unsigned int Receptionist::max_shift_duration_hours() const noexcept
 {
     return 12U;
@@ -24,13 +22,11 @@ bool Receptionist::can_handle(const Task& task, Weekday weekday, unsigned int ho
 void Receptionist::do_work(const Task& task, Weekday weekday, unsigned int hour_of_day)
 {
     if (!process_fatigue(task, weekday, hour_of_day)) {
-        std::cout << "Receptionist " << name << " cannot process this task right now.\n";
         return;
     }
     is_busy = true;
     current_task = task;
     remaining_task_minutes = task.duration_minutes;
-    std::cout << "Receptionist " << name << " checked in a guest.\n";
 }
 
 void Receptionist::determine_schedule(Weekday day, Shift shift_type)

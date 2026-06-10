@@ -15,4 +15,4 @@ void FireAlarm::clear() {
   hotel.set_power(true);
 }
 
-const char *FireAlarm::description() const { return "Alarm pozarowy"; }
+const char *FireAlarm::description() const { return "Fire alarm"; }
