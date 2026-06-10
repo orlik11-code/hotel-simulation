@@ -17,13 +17,13 @@ public:
   HotelEvent(const HotelEvent &) = delete;
   HotelEvent &operator=(const HotelEvent &) = delete;
 
-  /** Włącza skutki zdarzenia (prąd, ewakuacja, awaria). */
+  /** Applies event effects (power, evacuation, failure). */
   virtual void apply() = 0;
 
-  /** Cofa skutki po naprawie przez konserwatora. */
+  /** Reverts effects after maintenance repair. */
   virtual void clear() = 0;
 
-  /** Krótki opis do logu symulacji. */
+  /** Short description for simulation log. */
   [[nodiscard]] virtual const char *description() const = 0;
 
 protected:
