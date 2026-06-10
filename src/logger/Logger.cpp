@@ -29,7 +29,7 @@ void Logger::prepare_log(int tick_start, int tick_end,
                              return record.second < tick_to_cmp;
                            });
 
-      if (it != records.end() && it->second == act_tick) {
+      while (it != records.end() && it->second == act_tick) {
         // log_file << "[" << simulation.time_from_tick(act_tick) << "] [" <<
         // category << "]:  " << it->first << "\n"; W Simulation brakuje
         // funkcji, która konwertuje tick na czas, więc na razie logujemy tylko
@@ -37,6 +37,7 @@ void Logger::prepare_log(int tick_start, int tick_end,
         log_file << "[" << it->second << "] [" << category
                  << "]:  " << it->first << "\n";
         log_file.flush();
+        ++it;
       }
     }
     act_tick += frequency;
