@@ -16,7 +16,7 @@ bool Receptionist::can_handle(const Task& task, Weekday weekday, unsigned int ho
     if (!is_on_shift(hour_of_day, idx)) {
         return false;
     }
-    return task.type == TaskType::CheckIn;
+    return task.type == TaskType::CheckIn || task.type == TaskType::CheckOut;
 }
 
 void Receptionist::do_work(const Task& task, Weekday weekday, unsigned int hour_of_day)

@@ -7,10 +7,7 @@
 #include <chrono>
 #include <stdexcept>
 
-// dorobić budrzet hotelowy czy ty zrobisz? mysle ze to by było mega spoko
-// zwłaszcz, że mamy juz logikę peniedzy praktycznie podpięte reservation
-// powinno mieć flage resolved zeby wiedziec czy juz ta rezerwacja przeszła czy
-// nie set_resolved i get_resolved
+// TODO: optional resolved flag (set_resolved / get_resolved) to track completed stays.
 
 /* Last updates:
 

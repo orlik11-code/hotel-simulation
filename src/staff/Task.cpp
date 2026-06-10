@@ -50,6 +50,15 @@ Task Task::make_check_in()
     return task;
 }
 
+Task Task::make_check_out()
+{
+    Task task;
+    task.type = TaskType::CheckOut;
+    task.duration_minutes =
+        random_minutes(kReceptionistTaskMinMinutes, kReceptionistTaskMaxMinutes);
+    return task;
+}
+
 Task Task::make_clean_room()
 {
     Task task;

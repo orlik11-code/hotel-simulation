@@ -14,7 +14,7 @@ struct PendingMealTask {
   unsigned int worker_uid = 0U;
 };
 
-/** Plan obecności gościa na posiłku (raz na dzień). */
+/** Guest meal attendance plan (once per day per meal slot). */
 struct MealAttendancePlan {
   Reservation *reservation = nullptr;
   MealType meal_type{};

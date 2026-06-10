@@ -44,7 +44,9 @@ void Simulation::complete_pending_reception_tasks() {
       continue;
     }
 
-    if (worker->get_current_task().type != TaskType::CheckIn) {
+    const TaskType expected_task =
+        it->is_checkout ? TaskType::CheckOut : TaskType::CheckIn;
+    if (worker->get_current_task().type != expected_task) {
       apply_guest_satisfaction_penalty(it->reservation, 1);
       ++it;
       continue;
@@ -62,7 +64,7 @@ void Simulation::complete_pending_reception_tasks() {
                 "Checked in room " + std::to_string(room_nr));
       if (it->reservation->get_room().is_to_clean()) {
         apply_guest_satisfaction_penalty(it->reservation, 2);
-        log_event(sim_event_category::sprzatanie,
+        log_event(sim_event_category::housekeeping,
                   "Room " + std::to_string(room_nr) +
                       " was not cleaned before check-in");
       }
@@ -163,7 +165,7 @@ void Simulation::schedule_check_in_and_check_out(unsigned int hour,
 
     if (checkout_due && !reservation->is_checkout_settled() &&
         !has_pending_reception(reservation)) {
-      const Task reception_task = Task::make_check_in();
+      const Task reception_task = Task::make_check_out();
       Staff *receptionist = hotel_.assign_first_available_staff(
           StaffRole::Receptionist, reception_task, hour, weekday);
       if (receptionist != nullptr) {

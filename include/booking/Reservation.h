@@ -35,9 +35,9 @@ public:
   void cancel_by_guest(std::chrono::sys_days hotel_time);
   void cancel_by_hotel(std::chrono::sys_days hotel_time);
 
-  /** Recepcja zakończyła meldunek (nie mylić z check_has_begun — kalendarz). */
+  /** Reception completed check-in (not the same as check_has_begun — calendar). */
   [[nodiscard]] bool is_checked_in() const;
-  /** Recepcja zakończyła wymeldowanie i rozliczenie po stronie hotelu. */
+  /** Reception completed check-out and hotel-side settlement. */
   [[nodiscard]] bool is_checkout_settled() const;
   void mark_checked_in();
   void mark_checkout_settled();
