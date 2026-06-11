@@ -31,26 +31,20 @@ struct HousekeepingStats {
 class Hotel {
 private:
   std::vector<std::unique_ptr<Staff>> workers;
-  /** Goście z configu — jeden wektor na rezerwację (unique_ptr: Guest jest
-   * abstrakcyjny). */
+  /** Guests from config — one vector per reservation (unique_ptr: Guest is abstract). */
   std::vector<std::vector<std::unique_ptr<Guest>>> guest_lists;
   std::vector<std::unique_ptr<Room>> rooms;
   std::vector<std::unique_ptr<Reservation>> reservations;
 
-  // zrób kolekcje z rezerwacjami abym mógł podpiąć
-  // std::vector<Reservation> reservations
-
-  /* tutaj lepiej trzymac unique_ptr, rezerwacje beda tworzone
-  w innej klasie, raczej w simulation, wiec narazimy sie na kopiowanie, po
-  prostu zrob std::make_unique i uzyj add_reservation
-  */
+  /* Prefer unique_ptr: reservations are created elsewhere (e.g. Simulation);
+     use add_reservation with std::make_unique to avoid copies. */
 
   bool power;
   bool evacuation;
   bool actual_failure = false;
-  /** Start doby operacyjnej (np. poranny batch sprzątania). */
+  /** Start of the operational day (e.g. morning housekeeping batch). */
   unsigned int hotel_hour_start = 8;
-  /** Koniec okna dispatch pokojówek (recepcja — tylko grafik staff). */
+  /** End of housekeeping dispatch window (reception uses staff schedules only). */
   unsigned int hotel_hour_end = 16;
 
   int balance = 0;
@@ -79,7 +73,7 @@ public:
   [[nodiscard]] bool assign_first_available(StaffRole role, const Task &task,
                                             unsigned int hour_of_day,
                                             unsigned int weekday_index);
-  /** Zwraca pracownika, który dostał zadanie, albo nullptr. */
+  /** Returns the worker who received the task, or nullptr. */
   [[nodiscard]] Staff *assign_first_available_staff(StaffRole role,
                                                     const Task &task,
                                                     unsigned int hour_of_day,
@@ -99,35 +93,34 @@ public:
   int get_balance() const;
   void change_balance(int change);
 
-  // anulowanie przy 2 mniej dniach płacą dziadygi :D
+  /** Cancellation within 2 days of check-in may incur guest penalties. */
   void cancel_reservation(Reservation *reservation,
                           std::chrono::sys_days hotel_time);
 
-  // cały bill trafia do salda hoteli
+  /** Adds the full bill amount to hotel balance. */
   void complete_checkout(Reservation *reservation);
 
   std::vector<Reservation *> get_reservations() const;
 
-  // set flag na brudny pokoj (konkretny)
+  /** Marks a specific room as dirty (to_clean). */
   bool mark_room_dirty(unsigned int room_number);
 
   [[nodiscard]] HousekeepingStats
   collect_housekeeping_stats(unsigned int hour_of_day,
                              unsigned int weekday_index) const;
 
-  /** Kończy sprzątanie: gdy pokojówka skończyła CleanRoom → room.clean(). */
+  /** Completes cleaning: when housekeeper finished CleanRoom → room.clean(). */
   void apply_completed_housekeeping();
   [[nodiscard]] unsigned int dispatch_housekeeping(unsigned int hour_of_day,
                                                    unsigned int weekday_index);
 
   [[nodiscard]] bool has_pending_maintenance() const;
-  /** Czy którykolwiek konserwator jest na zmianie i może przyjąć FixFailure. */
+  /** True if any maintenance worker is on shift and can accept FixFailure. */
   [[nodiscard]] bool has_maintenance_on_shift(unsigned int hour_of_day,
                                               unsigned int weekday_index) const;
-  /** Kończy naprawę: gdy konserwator skończył FixFailure → actual_failure =
-   * false. */
+  /** Completes repair: when worker finished FixFailure → actual_failure = false. */
   void apply_completed_maintenance();
-  /** Przypisuje jednego konserwatora, jeśli awaria i brak pending. */
+  /** Assigns one maintenance worker when failure is active and none pending. */
   [[nodiscard]] bool try_assign_maintenance(unsigned int hour_of_day,
                                             unsigned int weekday_index);
 

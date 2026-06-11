@@ -11,10 +11,9 @@
 #include "simulation/SimEventLog.hpp"
 
 Simulation::Simulation(const SimConfig &new_sim_config)
-    : hotel_(), config_(new_sim_config), current_tick_(0U), is_running_(true),
-      time_with_fail_(0U),
-      event_generator_(std::make_unique<EventGenerator>(
-          hotel_, config_.event_probability)) {}
+    : hotel_(), current_tick_(0U), is_running_(true), time_with_fail_(0U) {
+  set_config(new_sim_config);
+}
 
 Hotel &Simulation::get_hotel() { return hotel_; }
 
@@ -26,7 +25,7 @@ bool Simulation::should_print_to_console(const std::string &category) const {
   if (!live_console_output_) {
     return false;
   }
-  if (category != sim_event_category::czas) {
+  if (category != sim_event_category::time) {
     return true;
   }
   const unsigned int interval = config_.log_every_n_ticks;
@@ -82,7 +81,7 @@ void Simulation::tick_log_time_step(unsigned int hour, unsigned int weekday) {
   } else {
     msg << "Tick " << current_tick_;
   }
-  log_event(sim_event_category::czas, msg.str());
+  log_event(sim_event_category::time, msg.str());
 }
 
 void Simulation::tick() {
@@ -109,7 +108,7 @@ void Simulation::tick() {
 void Simulation::run() {
   refresh_hotel_report();
 
-  log_event(sim_event_category::symulacja,
+  log_event(sim_event_category::simulation,
             "Event probability: " +
                 file_parse::format_probability_tenths(config_.event_probability));
 
@@ -117,7 +116,7 @@ void Simulation::run() {
       (config_.max_ticks > 0U)
           ? config_.max_ticks
           : (1440U + config_.minutesPerTick - 1U) / config_.minutesPerTick;
-  log_event(sim_event_category::symulacja,
+  log_event(sim_event_category::simulation,
             "Auto-run started — " + std::to_string(target_ticks) + " ticks.");
 
   while (is_running_ && current_tick_ < target_ticks) {
@@ -126,13 +125,13 @@ void Simulation::run() {
   }
 
   is_running_ = false;
-  log_event(sim_event_category::symulacja,
+  log_event(sim_event_category::simulation,
             "Finished after " + std::to_string(current_tick_) + " ticks.");
 
   publish_hotel_report();
   if (!config_.log_file.empty() && current_tick_ > 0U) {
     export_log_file();
-    log_event(sim_event_category::symulacja,
+    log_event(sim_event_category::simulation,
               "Log exported to file: " + config_.log_file);
   }
 }

@@ -128,7 +128,7 @@ void Simulation::ensure_meal_attendance_plans(MealType slot,
       meal_attendance_plans_.push_back(plan);
     } else {
       meal_no_shows_.push_back(MealNoShowRecord{reservation, slot, today});
-      log_event(sim_event_category::restauracja,
+      log_event(sim_event_category::restaurant,
                 "Guest no-show for " +
                     std::string(meal_type_label(slot)) + " (room " +
                     std::to_string(reservation->get_room().get_number()) + ")");
@@ -171,7 +171,7 @@ void Simulation::complete_pending_meal_tasks() {
       }
       it->phase = MealPhase::Ready;
       it->worker_uid = 0U;
-      log_event(sim_event_category::restauracja,
+      log_event(sim_event_category::restaurant,
                 std::string(meal_type_label(it->meal_type)) +
                     " ready (room " + std::to_string(room_nr) + ")");
       ++it;
@@ -187,7 +187,7 @@ void Simulation::complete_pending_meal_tasks() {
 
     meals_served_.push_back(
         MealServedRecord{it->reservation, it->meal_type, today});
-    log_event(sim_event_category::restauracja,
+    log_event(sim_event_category::restaurant,
               "Served " + std::string(meal_type_label(it->meal_type)) +
                   " (room " + std::to_string(room_nr) + ")");
     it = pending_meals_.erase(it);
@@ -250,7 +250,7 @@ void Simulation::dispatch_meals(MealType slot, unsigned int hour,
         }
         rooms << reservation->get_room().get_number();
       }
-      log_event(sim_event_category::restauracja,
+      log_event(sim_event_category::restaurant,
                 "Chef " + std::to_string(chef->get_uid()) + " cooking " +
                     meal_type_label(slot) + " for rooms: " + rooms.str());
       continue;
@@ -260,7 +260,7 @@ void Simulation::dispatch_meals(MealType slot, unsigned int hour,
       meal_no_shows_.push_back(MealNoShowRecord{reservation, slot, today});
       apply_guest_satisfaction_penalty(reservation, 1);
     }
-    log_event(sim_event_category::restauracja,
+    log_event(sim_event_category::restaurant,
               "No available chef for " + std::string(meal_type_label(slot)) +
                   " (" + std::to_string(batch.size()) + " rooms)");
   }
@@ -293,13 +293,13 @@ void Simulation::dispatch_meals(MealType slot, unsigned int hour,
           StaffRole::Waiter, serve_task, hour, weekday);
       if (waiter != nullptr) {
         pending.worker_uid = waiter->get_uid();
-        log_event(sim_event_category::restauracja,
+        log_event(sim_event_category::restaurant,
                   "Waiter " + std::to_string(waiter->get_uid()) + " serving " +
                       meal_type_label(slot) + " (room " +
                       std::to_string(room_nr) + ")");
       } else {
         apply_guest_satisfaction_penalty(reservation, 1);
-        log_event(sim_event_category::restauracja,
+        log_event(sim_event_category::restaurant,
                   "No available waiter for " +
                       std::string(meal_type_label(slot)) + " (room " +
                       std::to_string(room_nr) + ")");

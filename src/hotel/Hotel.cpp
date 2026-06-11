@@ -203,7 +203,7 @@ void Hotel::cancel_reservation(Reservation *reservation,
   const bool free_cancel =
       before_stay && days_until_checkin > std::chrono::days{2};
 
-  reservation->cancel_by_hotel(hotel_time); // to check!
+  reservation->cancel_by_hotel(hotel_time);
 
   if (!free_cancel && (before_stay || during_stay)) {
     const Bill bill(*reservation);
@@ -437,8 +437,7 @@ void Hotel::remove_reservation(
     std::chrono::sys_days today) {
   Reservation *res = it->get();
 
-  // Sprawdzenie, czy można bezpieczenie usunąć inaczej warningi o
-  // niezapłaconych rezerwacjach
+  // Ensure reservations are settled before removal (avoids unpaid-reservation warnings).
   if (res->check_has_begun(today) && !res->get_is_cancelled() &&
       !res->is_checkout_settled()) {
     std::cerr << "[WARNING] Deleting reservation for room "

@@ -28,7 +28,7 @@ void Simulation::try_fix_failure() {
   }
 
   if (hotel_.try_assign_maintenance(hour, day)) {
-    log_event(sim_event_category::awaria,
+    log_event(sim_event_category::failure,
               "Maintenance worker assigned to fix failure.");
     return;
   }
@@ -53,7 +53,7 @@ void Simulation::tick_resolve_maintenance() {
     active_event_->clear();
     active_event_.reset();
   }
-  log_event(sim_event_category::awaria, "Failure repaired.");
+  log_event(sim_event_category::failure, "Failure repaired.");
 }
 
 void Simulation::tick_process_failures_and_random_events() {
@@ -66,12 +66,12 @@ void Simulation::tick_process_failures_and_random_events() {
           event_generator_->decide_what_happens()) {
     active_event_ = std::move(event);
     active_event_->apply();
-    log_event(sim_event_category::awaria,
+    log_event(sim_event_category::failure,
               std::string(active_event_->description()) + " (chance " +
                   file_parse::format_probability_tenths(config_.event_probability) +
                   ").");
     if (hotel_.get_evacuation()) {
-      log_event(sim_event_category::awaria,
+      log_event(sim_event_category::failure,
                 "Evacuation — check-ins suspended until alarm is cleared.");
     }
     try_fix_failure();
@@ -123,7 +123,7 @@ void Simulation::process_cancellations() {
     }
     const unsigned int room_nr = reservation->get_room().get_number();
     hotel_.cancel_reservation(reservation, actual_date());
-    log_event(sim_event_category::rezerwacja,
+    log_event(sim_event_category::reservation,
               "Hotel cancelled reservation for room " +
                   std::to_string(room_nr));
   }
