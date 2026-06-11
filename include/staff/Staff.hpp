@@ -5,7 +5,7 @@
 #include <array>
 #include <string>
 
-/** Abstrakcyjna klasa bazowa personelu: wspólne dane i interfejs pracy. */
+/** Abstract staff base class: shared state and work interface. */
 class Staff {
 protected:
     unsigned int uid;
@@ -18,7 +18,7 @@ protected:
 
     std::array<Shift, 7> working_hours;
     bool is_busy = false;
-    /** Pozostały czas bieżącego zadania w minutach (duration_hours * 60 przy starcie). */
+    /** Remaining time of the current task in minutes (duration_hours * 60 at start). */
     unsigned int remaining_task_minutes = 0;
     Task current_task;
 
@@ -46,7 +46,7 @@ public:
           unsigned int fatigue_rate);
     virtual ~Staff() = default;
 
-    /** elapsed_minutes — ile minut modelu mija w tym ticku (z SimConfig::minutesPerTick). */
+    /** elapsed_minutes — model minutes elapsed this tick (from SimConfig::minutesPerTick). */
     void process_tick(unsigned int elapsed_minutes, unsigned int hour_of_day,
                       unsigned int weekday_index);
 
@@ -67,7 +67,7 @@ public:
     [[nodiscard]] virtual bool can_handle(const Task& task, Weekday weekday, unsigned int hour_of_day) const noexcept = 0;
     virtual void do_work(const Task& task, Weekday weekday, unsigned int hour_of_day) = 0;
 
-    /** weekday: 0 = poniedziałek … 6 = niedziela (dowolna ustalona konwencja). */
+    /** weekday: 0 = Monday … 6 = Sunday (fixed convention). */
     [[nodiscard]] bool is_on_shift(unsigned hour_of_day, unsigned weekday) const noexcept;
     void check_schedule(unsigned int day_index, unsigned int start_hour, unsigned int end_hour) const;
     virtual void determine_schedule(Weekday day, Shift shift_type) = 0;

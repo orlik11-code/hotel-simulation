@@ -2,7 +2,7 @@
 
 #include "staff/Staff.hpp"
 
-/** Kelner: dostarcza i serwuje gotowe zamówienia. */
+/** Waiter: delivers and serves ready orders. */
 class Waiter final : public Staff {
 protected:
     [[nodiscard]] unsigned int max_shift_duration_hours() const noexcept override;

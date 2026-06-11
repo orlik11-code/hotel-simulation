@@ -20,6 +20,7 @@ enum class StaffRole {
 
 enum class TaskType {
     CheckIn,
+    CheckOut,
     CleanRoom,
     CookMeal,
     ServeMeal,
@@ -51,7 +52,7 @@ struct Task {
     {
     }
 
-    /** Jak stary init list: (typ, duration_w_godzinach, difficulty, bonus, night_shift). */
+    /** Legacy init-list shape: (type, duration_hours, difficulty, bonus, night_shift). */
     Task(TaskType t, unsigned int duration_hours, unsigned int diff, unsigned int task_bonus, bool night)
         : type(t),
           duration_minutes(duration_hours * 60U),
@@ -66,8 +67,9 @@ struct Task {
 
     // 1 - 10 minutes
     [[nodiscard]] static Task make_check_in();
+    [[nodiscard]] static Task make_check_out();
 
-    /** Fabryka sprzątania pokoju — losowy czas 5–25 minut włącznie. */
+    /** Room cleaning factory — random duration 5–25 minutes inclusive. */
     [[nodiscard]] static Task make_clean_room();
     [[nodiscard]] static Task make_fix_failure();
     [[nodiscard]] static Task make_cook_meal();

@@ -2,7 +2,7 @@
 
 #include "staff/Staff.hpp"
 
-/** Pokojówka: realizuje zadania sprzątania pokoi. */
+/** Housekeeper: performs room cleaning tasks. */
 class Housekeeper final : public Staff {
 protected:
     [[nodiscard]] unsigned int max_shift_duration_hours() const noexcept override;

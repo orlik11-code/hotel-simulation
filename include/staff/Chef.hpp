@@ -2,7 +2,7 @@
 
 #include "staff/Staff.hpp"
 
-/** Kucharz: przygotowuje posiłki dla gości hotelu. */
+/** Chef: prepares meals for hotel guests. */
 class Chef final : public Staff {
 protected:
     [[nodiscard]] unsigned int max_shift_duration_hours() const noexcept override;

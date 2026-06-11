@@ -57,7 +57,8 @@ Room::Room(double area, unsigned int number, unsigned int floor,
            unsigned int single_beds, unsigned int double_beds, bool to_clean,
            bool to_repair)
     : area(area), number(number), floor(floor), single_beds(single_beds),
-      double_beds(double_beds), to_clean(to_clean), to_repair(to_repair) {}
+      double_beds(double_beds), to_clean(to_clean), to_repair(to_repair),
+      occupied(false) {}
 
 // checking if room is suitable for client
 bool Room::check_suitability(

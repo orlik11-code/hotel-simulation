@@ -270,7 +270,7 @@ const Task& Staff::get_current_task() const noexcept
 void Staff::process_tick(unsigned int elapsed_minutes, unsigned int hour_of_day,
                          unsigned int weekday_index)
 {
-    accrue_shift_pay(elapsed_minutes, hour_of_day, weekday_index);
+    (void)accrue_shift_pay(elapsed_minutes, hour_of_day, weekday_index);
 
     if (is_busy) {
         if (remaining_task_minutes <= elapsed_minutes) {

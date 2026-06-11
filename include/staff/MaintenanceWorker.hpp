@@ -2,7 +2,7 @@
 
 #include "staff/Staff.hpp"
 
-/** Konserwator: usuwa awarie i usterki techniczne. */
+/** Maintenance worker: fixes failures and technical issues. */
 class MaintenanceWorker final : public Staff {
 protected:
     [[nodiscard]] unsigned int max_shift_duration_hours() const noexcept override;

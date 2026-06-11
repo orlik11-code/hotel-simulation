@@ -3,5 +3,5 @@
 class VIP : public Guest {
 public:
   using Guest::Guest;
-  void virtual reduce_satisfaction(int default_value) override;
+  virtual void reduce_satisfaction(int default_value) override;
 };

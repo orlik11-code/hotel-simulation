@@ -2,7 +2,7 @@
 
 #include "staff/Staff.hpp"
 
-/** Recepcjonista: obsługuje zadania związane z meldowaniem gości. */
+/** Receptionist: handles guest check-in and check-out tasks. */
 class Receptionist final : public Staff {
 protected:
     [[nodiscard]] unsigned int max_shift_duration_hours() const noexcept override;

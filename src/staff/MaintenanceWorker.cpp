@@ -16,8 +16,10 @@ StaffRole MaintenanceWorker::role() const noexcept
 
 bool MaintenanceWorker::can_handle(const Task& task, Weekday weekday, unsigned int hour_of_day) const noexcept
 {
-    (void)weekday;
-    (void)hour_of_day;
+    const unsigned int idx = get_day(weekday);
+    if (!is_on_shift(hour_of_day, idx)) {
+        return false;
+    }
     return task.type == TaskType::FixFailure && !task.night_shift;
 }
 
