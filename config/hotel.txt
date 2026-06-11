@@ -1,18 +1,18 @@
 # =============================================================================
-# Hotel Grand Aurora — demo symulacji (pokoje + rezerwacje + personel + posiłki)
-# Start: 2026-06-02 (wtorek) | 1 tick = 5 min | 864 ticków ≈ 3 doby
+# Hotel Grand Aurora — demo simulation (rooms + reservations + staff + meals)
+# Start: 2026-06-02 (Tuesday) | 1 tick = 5 min | 864 ticks ≈ 3 days
 # =============================================================================
 
 [simulation]
 minutes_per_tick=5
 max_ticks=864
-event_probability=0.5
+event_probability=0.3
 date_start=2026-06-02
-meal_attendance_percent=85
+meal_attendance_percent=80
 log_every_n_ticks=5
 log_file=hotel_simulation.log
 
-# --- PIĘTRO 1: pokoje ekonomiczne / business ---------------------------------
+# ---- floooooor 1
 
 [room]
 type=Single
@@ -62,7 +62,7 @@ area=28
 single_beds=0
 double_beds=1
 
-# --- PIĘTRO 2: pokoje rodzinne -----------------------------------------------
+# --- FLOOR 2: family rooms ---------------------------------------------------
 
 [room]
 type=Triple
@@ -112,7 +112,7 @@ area=44
 single_beds=0
 double_beds=2
 
-# --- PIĘTRO 3: apartamenty ---------------------------------------------------
+# --- FLOOR 3: apartments -----------------------------------------------------
 
 [room]
 type=Apartment
@@ -146,7 +146,7 @@ area=78
 single_beds=1
 double_beds=2
 
-# --- PIĘTRO 4: apartamenty premium -------------------------------------------
+# --- FLOOR 4: premium apartments ---------------------------------------------
 
 [room]
 type=Apartment
@@ -165,10 +165,10 @@ single_beds=1
 double_beds=2
 
 # =============================================================================
-# REZERWACJE — różne profile gości, godziny, wyżywienie
+# RESERVATIONS — varied guest profiles, times, meal plans
 # =============================================================================
 
-# 101 — biznesmen, krótki pobyt, bez wyżywienia
+# 101 — business guest, short stay, no meals
 [reservation]
 room_number=101
 check_in=2026-06-02
@@ -185,7 +185,7 @@ type=Business
 name=Marek
 surname=Wisniewski
 
-# 102 — konferencja, meldunek wcześnie rano
+# 102 — conference, early-morning check-in
 [reservation]
 room_number=102
 check_in=2026-06-02
@@ -202,7 +202,7 @@ type=Business
 name=Ewa
 surname=Kaminska
 
-# 103 — dłuższy pobyt solo
+# 103 — longer solo stay
 [reservation]
 room_number=103
 check_in=2026-06-02
@@ -219,7 +219,7 @@ type=Business
 name=Piotr
 surname=Zielinski
 
-# 104 — para business + wyżywienie
+# 104 — business couple + meals included
 [reservation]
 room_number=104
 check_in=2026-06-02
@@ -241,7 +241,7 @@ type=Business
 name=Tomasz
 surname=Lewandowski
 
-# 105 — przyjazd tego samego dnia co start symulacji, popołudnie
+# 105 — arrives same day as simulation start, afternoon
 [reservation]
 room_number=105
 check_in=2026-06-02
@@ -263,7 +263,7 @@ type=Business
 name=Robert
 surname=Nowicki
 
-# 106 — check-in następnego dnia (test kolejki recepcji)
+# 106 — check-in next day (reception queue test)
 [reservation]
 room_number=106
 check_in=2026-06-03
@@ -285,7 +285,7 @@ type=Business
 name=Joanna
 surname=Sikora
 
-# 201 — rodzina z dziećmi, pełne wyżywienie
+# 201 — family with children, full board
 [reservation]
 room_number=201
 check_in=2026-06-02
@@ -312,7 +312,7 @@ type=Family
 name=Zuzia
 surname=Kowalska
 
-# 202 — duża rodzina (4 osoby)
+# 202 — large family (4 guests)
 [reservation]
 room_number=202
 check_in=2026-06-02
@@ -344,7 +344,7 @@ type=Family
 name=Filip
 surname=Woźniak
 
-# 203 — rodzina, meldunek wieczorem
+# 203 — family, evening check-in
 [reservation]
 room_number=203
 check_in=2026-06-02
@@ -371,7 +371,7 @@ type=Family
 name=Oskar
 surname=Pawlak
 
-# 204 — rodzina od środy
+# 204 — family from Wednesday
 [reservation]
 room_number=204
 check_in=2026-06-04
@@ -403,7 +403,7 @@ type=Family
 name=Leon
 surname=Grabowski
 
-# 205 — weekend rodzinny
+# 205 — family weekend stay
 [reservation]
 room_number=205
 check_in=2026-06-02
@@ -430,7 +430,7 @@ type=Family
 name=Maja
 surname=Mazur
 
-# 206 — rodzina z wyżywieniem, długi pobyt
+# 206 — family with meals, long stay
 [reservation]
 room_number=206
 check_in=2026-06-02
@@ -462,7 +462,7 @@ type=Family
 name=Antoni
 surname=Krawczyk
 
-# 301 — VIP apartament
+# 301 — VIP apartment
 [reservation]
 room_number=301
 check_in=2026-06-02
@@ -501,7 +501,7 @@ type=VIP
 name=Isabella
 surname=Conti
 
-# 303 — VIP rodzina
+# 303 — VIP family
 [reservation]
 room_number=303
 check_in=2026-06-03
@@ -528,7 +528,7 @@ type=VIP
 name=Louis
 surname=Dubois
 
-# 304 — VIP krótki pobyt
+# 304 — VIP short stay
 [reservation]
 room_number=304
 check_in=2026-06-02
@@ -545,7 +545,7 @@ type=VIP
 name=Natalia
 surname=Orlov
 
-# 401 — penthouse, para VIP
+# 401 — penthouse, VIP couple
 [reservation]
 room_number=401
 check_in=2026-06-02
@@ -567,7 +567,7 @@ type=VIP
 name=Eleanor
 surname=Ashford
 
-# 402 — penthouse, business premium
+# 402 — penthouse, premium business
 [reservation]
 room_number=402
 check_in=2026-06-04
@@ -590,10 +590,10 @@ name=Helena
 surname=Richter
 
 # =============================================================================
-# PERSONEL — zmiany dzienne i wieczorne, 7 dni w tygodniu
+# STAFF — day and evening shifts, 7 days a week
 # =============================================================================
 
-# Konserwatorzy — dyżur awaryjny 24/7 (start=0 end=0)
+# Maintenance — 3 shifts × 8 h (0–8, 8–16, 16–24); no start=0 end=0
 [worker]
 uid=1
 role=MaintenanceWorker
@@ -606,37 +606,37 @@ fatigue_rate=4
 [schedule]
 day=monday
 start=0
-end=0
+end=8
 
 [schedule]
 day=tuesday
 start=0
-end=0
+end=8
 
 [schedule]
 day=wednesday
 start=0
-end=0
+end=8
 
 [schedule]
 day=thursday
 start=0
-end=0
+end=8
 
 [schedule]
 day=friday
 start=0
-end=0
+end=8
 
 [schedule]
 day=saturday
 start=0
-end=0
+end=8
 
 [schedule]
 day=sunday
 start=0
-end=0
+end=8
 
 [worker]
 uid=2
@@ -649,40 +649,84 @@ fatigue_rate=4
 
 [schedule]
 day=monday
-start=0
-end=0
+start=8
+end=16
 
 [schedule]
 day=tuesday
-start=0
-end=0
+start=8
+end=16
 
 [schedule]
 day=wednesday
-start=0
-end=0
+start=8
+end=16
 
 [schedule]
 day=thursday
-start=0
-end=0
+start=8
+end=16
 
 [schedule]
 day=friday
-start=0
-end=0
+start=8
+end=16
 
 [schedule]
 day=saturday
-start=0
-end=0
+start=8
+end=16
 
 [schedule]
 day=sunday
-start=0
-end=0
+start=8
+end=16
 
-# Recepcja — 3 osoby (pełne pokrycie)
+[worker]
+uid=3
+role=MaintenanceWorker
+name=Wiktor
+surname=Klucz
+salary=22
+salary_night=12
+fatigue_rate=4
+
+[schedule]
+day=monday
+start=16
+end=24
+
+[schedule]
+day=tuesday
+start=16
+end=24
+
+[schedule]
+day=wednesday
+start=16
+end=24
+
+[schedule]
+day=thursday
+start=16
+end=24
+
+[schedule]
+day=friday
+start=16
+end=24
+
+[schedule]
+day=saturday
+start=16
+end=24
+
+[schedule]
+day=sunday
+start=16
+end=24
+
+# Reception — 3 staff (full coverage)
 [worker]
 uid=10
 role=Receptionist
@@ -815,7 +859,7 @@ day=sunday
 start=9
 end=17
 
-# Housekeeping — 5 osób
+# Housekeeping — 5 staff
 [worker]
 uid=20
 role=Housekeeper
@@ -1036,7 +1080,7 @@ day=sunday
 start=13
 end=21
 
-# Kuchnia — 2 kucharzy (batch do 10 porcji)
+# Kitchen — 3 chefs (batch up to 10 portions, overlapping shifts 6–21)
 [worker]
 uid=30
 role=Chef
@@ -1044,7 +1088,7 @@ name=Piotr
 surname=Garnek
 salary=20
 salary_night=10
-fatigue_rate=5
+fatigue_rate=4
 
 [schedule]
 day=monday
@@ -1073,13 +1117,13 @@ end=12
 
 [schedule]
 day=saturday
-start=7
-end=13
+start=6
+end=12
 
 [schedule]
 day=sunday
-start=7
-end=13
+start=6
+end=12
 
 [worker]
 uid=31
@@ -1088,44 +1132,88 @@ name=Marek
 surname=Patelnia
 salary=20
 salary_night=10
-fatigue_rate=5
+fatigue_rate=4
 
 [schedule]
 day=monday
-start=14
-end=20
+start=11
+end=17
 
 [schedule]
 day=tuesday
-start=14
-end=20
+start=11
+end=17
 
 [schedule]
 day=wednesday
-start=14
-end=20
+start=11
+end=17
 
 [schedule]
 day=thursday
-start=14
-end=20
+start=11
+end=17
 
 [schedule]
 day=friday
-start=14
-end=20
+start=11
+end=17
 
 [schedule]
 day=saturday
-start=13
-end=19
+start=11
+end=17
 
 [schedule]
 day=sunday
-start=13
-end=19
+start=11
+end=17
 
-# Kelnerzy — 2 osoby
+[worker]
+uid=32
+role=Chef
+name=Asia
+surname=Blaszak
+salary=19
+salary_night=9
+fatigue_rate=4
+
+[schedule]
+day=monday
+start=16
+end=22
+
+[schedule]
+day=tuesday
+start=16
+end=22
+
+[schedule]
+day=wednesday
+start=16
+end=22
+
+[schedule]
+day=thursday
+start=16
+end=22
+
+[schedule]
+day=friday
+start=16
+end=22
+
+[schedule]
+day=saturday
+start=16
+end=22
+
+[schedule]
+day=sunday
+start=16
+end=22
+
+# Waiters — 5 staff (breakfast 7–10 and dinner 17–20 coverage)
 [worker]
 uid=40
 role=Waiter
@@ -1133,41 +1221,41 @@ name=Kasia
 surname=Taca
 salary=15
 salary_night=8
-fatigue_rate=5
+fatigue_rate=4
 
 [schedule]
 day=monday
 start=7
-end=15
+end=16
 
 [schedule]
 day=tuesday
 start=7
-end=15
+end=16
 
 [schedule]
 day=wednesday
 start=7
-end=15
+end=16
 
 [schedule]
 day=thursday
 start=7
-end=15
+end=16
 
 [schedule]
 day=friday
 start=7
-end=15
+end=16
 
 [schedule]
 day=saturday
-start=8
+start=7
 end=16
 
 [schedule]
 day=sunday
-start=8
+start=7
 end=16
 
 [worker]
@@ -1177,45 +1265,177 @@ name=Jakub
 surname=Nosidlo
 salary=15
 salary_night=8
-fatigue_rate=5
+fatigue_rate=4
 
 [schedule]
 day=monday
-start=12
-end=20
+start=11
+end=21
 
 [schedule]
 day=tuesday
-start=12
-end=20
+start=11
+end=21
 
 [schedule]
 day=wednesday
-start=12
-end=20
+start=11
+end=21
 
 [schedule]
 day=thursday
-start=12
-end=20
+start=11
+end=21
 
 [schedule]
 day=friday
-start=12
-end=20
+start=11
+end=21
 
 [schedule]
 day=saturday
 start=11
-end=19
+end=21
 
 [schedule]
 day=sunday
 start=11
+end=21
+
+[worker]
+uid=42
+role=Waiter
+name=Nina
+surname=Talerz
+salary=14
+salary_night=7
+fatigue_rate=4
+
+[schedule]
+day=monday
+start=6
+end=14
+
+[schedule]
+day=tuesday
+start=6
+end=14
+
+[schedule]
+day=wednesday
+start=6
+end=14
+
+[schedule]
+day=thursday
+start=6
+end=14
+
+[schedule]
+day=friday
+start=6
+end=14
+
+[schedule]
+day=saturday
+start=6
+end=14
+
+[schedule]
+day=sunday
+start=6
+end=14
+
+[worker]
+uid=43
+role=Waiter
+name=Tomek
+surname=Kieliszek
+salary=14
+salary_night=7
+fatigue_rate=4
+
+[schedule]
+day=monday
+start=14
+end=22
+
+[schedule]
+day=tuesday
+start=14
+end=22
+
+[schedule]
+day=wednesday
+start=14
+end=22
+
+[schedule]
+day=thursday
+start=14
+end=22
+
+[schedule]
+day=friday
+start=14
+end=22
+
+[schedule]
+day=saturday
+start=14
+end=22
+
+[schedule]
+day=sunday
+start=14
+end=22
+
+[worker]
+uid=44
+role=Waiter
+name=Ola
+surname=Stolik
+salary=14
+salary_night=7
+fatigue_rate=4
+
+[schedule]
+day=monday
+start=9
+end=19
+
+[schedule]
+day=tuesday
+start=9
+end=19
+
+[schedule]
+day=wednesday
+start=9
+end=19
+
+[schedule]
+day=thursday
+start=9
+end=19
+
+[schedule]
+day=friday
+start=9
+end=19
+
+[schedule]
+day=saturday
+start=9
+end=19
+
+[schedule]
+day=sunday
+start=9
 end=19
 
 # =============================================================================
-# RESTAURACJA — śniadania i kolacje
+# RESTAURANT — breakfast and dinner
 # =============================================================================
 
 [meal_service]
