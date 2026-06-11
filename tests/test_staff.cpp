@@ -118,7 +118,7 @@ TEST_CASE("Fatigue grows with work and can be reduced by rest")
     chef.do_work(cook_task, kSimWeekday, kSimHour); // blocked by fatigue
     REQUIRE(chef.get_to_pay() == pay_before_blocked_work);
 
-    chef.rest_tick(600U); // ~10 h odpoczynku w minutach (jak wcześniejszy skalowany tick)
+    chef.rest_tick(600U); // ~10 h rest in model minutes
     REQUIRE_FALSE(chef.is_tired());
 }
 

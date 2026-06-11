@@ -31,7 +31,7 @@ TEST_CASE("Logger log generation logic") {
   }
 
   Logger logger("output.log", sim, 1);
-  std::set<std::string> categories = {"czas"};
+  std::set<std::string> categories = {"time"};
 
   SUBCASE("Empty range") {
     logger.prepare_log(100, 200, categories);
@@ -56,8 +56,8 @@ TEST_CASE("Logger log generation logic") {
 
   SUBCASE("Exports one line per stored record in tick range") {
     const SimEventLog &log = sim.get_event_log();
-    REQUIRE(log.contains("czas"));
-    const auto &records = log.at("czas");
+    REQUIRE(log.contains("time"));
+    const auto &records = log.at("time");
     REQUIRE(records.size() == 15U);
 
     logger.prepare_log(1, 15, categories);

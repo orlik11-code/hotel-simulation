@@ -167,17 +167,6 @@ struct LoadContext {
                               ": unknown room type '" + value + "'");
 }
 
-[[nodiscard]] MealType parse_meal(const std::string &value, unsigned int line_no) {
-  if (value == "breakfast") {
-    return MealType::breakfast;
-  }
-  if (value == "dinner") {
-    return MealType::dinner;
-  }
-  throw std::invalid_argument("Line " + std::to_string(line_no) +
-                              ": unknown meal type '" + value + "'");
-}
-
 [[nodiscard]] std::unique_ptr<Staff> make_worker(const WorkerDraft &draft,
                                                  unsigned int line_no) {
   if (!draft.uid || !draft.role || !draft.name || !draft.surname ||
@@ -300,7 +289,7 @@ void apply_meal_service_key(MealServiceDraft &draft, const std::string &key,
   if (key == "start_hour") {
     draft.start_hour = file_parse::parse_positive(value, "start_hour");
   } else if (key == "type") {
-    draft.type = parse_meal(value, line_no);
+    draft.type = parse_meal_type(value, line_no);
   } else if (key == "end_hour") {
     draft.end_hour = file_parse::parse_positive(value, "end_hour");
   } else {

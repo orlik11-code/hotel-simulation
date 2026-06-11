@@ -38,8 +38,19 @@ Separate config file (optional):
 | `max_ticks` | Run length; `0` = one simulated day |
 | `event_probability` | Failure chance per tick, 0.5–30 (e.g. `0.5` = 0.5%) |
 | `date_start` | Calendar start `YYYY-MM-DD` |
-| `log_every_n_ticks` | Print `[czas]` summary every N ticks (other events print immediately) |
+| `log_every_n_ticks` | Print `[time]` summary every N ticks (other events print immediately) |
 | `log_file` | Export event log to this path after the run |
 | `log_file_every_n_ticks` | File export step (`0` = same as console) |
 
 Demo dataset: `config/hotel.txt` (Hotel Grand Aurora, ~3 simulated days).
+
+
+--hotel <path> whole scenato
+--config <path> additional configurations key=value
+--staff <path> only personel
+--max-ticks N ile tickow
+--minutes-per-tick N min to tick
+--event-probability X 0.3 = 0,3%, 5 = 5% poer tick
+--log-every-n-ticks N periot dime
+--log-file <path> log file
+--log-file-every-n-ticks N interval

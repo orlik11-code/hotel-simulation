@@ -76,8 +76,8 @@ TEST_CASE("Simulation logs restaurant activity for food_included stay") {
   simulation.run();
 
   const SimEventLog &log = simulation.get_event_log();
-  REQUIRE(log.contains(sim_event_category::restauracja));
-  REQUIRE_FALSE(log.at(sim_event_category::restauracja).empty());
+  REQUIRE(log.contains(sim_event_category::restaurant));
+  REQUIRE_FALSE(log.at(sim_event_category::restaurant).empty());
 
   std::remove(path.c_str());
 }

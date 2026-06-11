@@ -16,11 +16,11 @@ TEST_CASE("Simulation fills event log map during run") {
   simulation.run();
 
   const SimEventLog &log = simulation.get_event_log();
-  REQUIRE(log.contains(sim_event_category::symulacja));
-  REQUIRE(log.contains(sim_event_category::czas));
-  REQUIRE(log.at(sim_event_category::czas).size() == 2U);
-  REQUIRE(log.at(sim_event_category::czas)[0].second == 1);
-  REQUIRE(log.at(sim_event_category::czas)[1].second == 2);
+  REQUIRE(log.contains(sim_event_category::simulation));
+  REQUIRE(log.contains(sim_event_category::time));
+  REQUIRE(log.at(sim_event_category::time).size() == 2U);
+  REQUIRE(log.at(sim_event_category::time)[0].second == 1);
+  REQUIRE(log.at(sim_event_category::time)[1].second == 2);
 }
 
 TEST_CASE("log_every_n_ticks throttles console but keeps full event log") {
@@ -35,7 +35,7 @@ TEST_CASE("log_every_n_ticks throttles console but keeps full event log") {
   simulation.run();
 
   const SimEventLog &log = simulation.get_event_log();
-  REQUIRE(log.at(sim_event_category::czas).size() == 6U);
-  REQUIRE(log.at(sim_event_category::czas)[1].first.find("2 ticks elapsed") !=
+  REQUIRE(log.at(sim_event_category::time).size() == 6U);
+  REQUIRE(log.at(sim_event_category::time)[1].first.find("2 ticks elapsed") !=
           std::string::npos);
 }
