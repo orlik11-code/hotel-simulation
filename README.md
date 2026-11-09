@@ -2,6 +2,34 @@
 
 Discrete-time hotel management simulation: reception, housekeeping, meals, staff payroll, random failures, and configurable logging.
 
+## Team project
+
+Built by a team of two for the Object-Oriented Programming course (PROI) at Warsaw University of Technology.
+Work split as documented in the final report ([docs/final_report_PL.pdf](docs/final_report_PL.pdf), section 10):
+
+**Konrad Orlikowski** ([@orlik11-code](https://github.com/orlik11-code))
+- Room hierarchy: abstract `Room` with `SingleRoom`, `DoubleRoom`, `TripleRoom` and `Apartment`;
+  cleaning/repair states, nightly price and staffing calculations
+- Guests: `Guest` hierarchy (`Family`, `Business`, `VIP`) with satisfaction multipliers;
+  `Reservation`, `Bill` and `HotelReport` with rating thresholds
+- Random events: `EventGenerator` using the shared `simulation_rng`, `HotelEvent` classes
+  (`PowerOutage`, `FireAlarm`)
+- `SimEventLog` structures and binary search by tick (`lower_bound`) used by the `Logger`
+
+**Bartosz Grzanka** ([@Turbotoster7](https://github.com/Turbotoster7))
+- Simulation engine: `Simulation` class and the domain modules `Simulation*.cpp`
+- Staff: `Staff` hierarchy, `Task` with `make_*` factories, fatigue model, per-tick payroll,
+  schedule validation
+- Logging: two-layer throttling (console vs `SimEventLog`), export via `Logger::prepare_log`
+- Configuration loading: `ConfigLoader` (sections + CLI), `HotelLoader`, `StaffLoader`
+- Demo scenario `config/hotel.txt`: 18 rooms, 19 staff members, 3 simulated days
+
+**Together**
+- Unit tests (16 files) and CTest integration
+- Tuning the demo scenario's staffing based on no-show log analysis
+- Agreeing on interfaces between domain classes and `Simulation`
+- Final documentation and diagrams
+
 ## Build
 
 ```bash
